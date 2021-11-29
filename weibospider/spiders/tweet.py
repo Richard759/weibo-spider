@@ -12,7 +12,7 @@ from lxml import etree
 from scrapy import Spider
 from scrapy.http import Request
 import time
-from settings import TWEET_DATE_WINDOW, TWEET_KEY_WORDS
+from settings import TWEET_DATE_WINDOW, TWEET_KEY_WORDS, ONLY_HOT, ONLY_ORIGIN, TIME_DELTA
 from items import TweetItem
 from spiders.utils import time_fix, extract_weibo_content
 import random
@@ -67,8 +67,13 @@ class TweetSpider(Spider):
             keywords = TWEET_KEY_WORDS  # 按话题找微博，需要设置起止时间
             date_start = datetime.datetime.strptime(TWEET_DATE_WINDOW["start_date"], '%Y-%m-%d')
             date_end = datetime.datetime.strptime(TWEET_DATE_WINDOW["end_date"], '%Y-%m-%d')
-            time_spread = datetime.timedelta(days=1)
-            url_format = "https://s.weibo.com/weibo?q={}&typeall=1&suball=1&timescope=custom:{}:{}&Refer=g&page=1"
+            time_spread = datetime.timedelta(days=TIME_DELTA)
+            if ONLY_ORIGIN:
+                url_format = "https://s.weibo.com/weibo?q={}&scope=ori&typeall=1&suball=1&timescope=custom:{}:{}&Refer=g&page=1"
+            elif ONLY_HOT:
+                url_format = "https://s.weibo.com/weibo?q={}&xsort=hot&typeall=1&suball=1&timescope=custom:{}:{}&Refer=g&page=1"
+            else:
+                url_format = "https://s.weibo.com/weibo?q={}&typeall=1&suball=1&timescope=custom:{}:{}&Refer=g&page=1"
             # url_format = "https://s.weibo.com/weibo?q={}&timescope=custom:{}:{}&Refer=SWeibo_box&page=1"
             urls = []
             while date_start <= date_end:
@@ -76,8 +81,8 @@ class TweetSpider(Spider):
                     # 添加按日的url
                     keyword = keyword.replace('#', '%23')
                     day_string_end = date_end.strftime("%Y-%m-%d")
-                    day_string_start = date_end.strftime("%Y-%m-%d")
-                    # day_string_start = (date_end - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+                    # day_string_start = date_end.strftime("%Y-%m-%d")
+                    day_string_start = (date_end - datetime.timedelta(days=TIME_DELTA-1)).strftime("%Y-%m-%d")
                     urls.append(url_format.format(keyword, day_string_start, day_string_end))
                 date_end = date_end - time_spread
             url_set = list(set(urls))
@@ -86,21 +91,8 @@ class TweetSpider(Spider):
         # select urls generation by the following code
         urls = init_url_by_keywords()
         # urls = init_url_by_user_id()
-        # headers1 = {
-        #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36 Edg/94.0.992.50',
-        #     'Cookie': 'SINAGLOBAL=2984020340573.4653.1615966504509; _s_tentry=-; Apache=5630874165587.54.1635862344926; ULV=1635862344931:36:1:1:5630874165587.54.1635862344926:1635506938379; login_sid_t=dfd0374e19e48765b13a3f1dc35d0411; cross_origin_proto=SSL; ALF=1667398812; SSOLoginState=1635862812; SCF=At9eOLw9o69sap1_tTXMdkUPPcB7_jux_87EDPewfgITu_-_9z6hMrNwlH0yLZETYTrbqNmn59eMMulcI1cMzpw.; SUB=_2A25MhTlMDeRhGeBL7VsU8SzJzjyIHXVv8y2ErDV8PUNbmtANLRH-kW9NRvFrV3mcz6UXhpp05hlURS8mzibI4IqI; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh5h_i4eSgoD7jFisEd1k8Y5JpX5KzhUgL.FoqfSo.feKzfSK52dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcSKq4SK2ESK-7; wvr=6; UOR=,,login.sina.com.cn; webim_unReadCount=%7B%22time%22%3A1635864936064%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A42%2C%22msgbox%22%3A0%7D'}
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36 Edg/95.0.1020.44',
-            'Cookie': 'SINAGLOBAL=2984020340573.4653.1615966504509; UOR=,,login.sina.com.cn; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh5h_i4eSgoD7jFisEd1k8Y5JpX5KMhUgL.FoqfSo.feKzfSK52dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcSKq4SK2ESK-7; ALF=1669021847; SSOLoginState=1637485848; SCF=At9eOLw9o69sap1_tTXMdkUPPcB7_jux_87EDPewfgITZPhZfmOC0h1ApQf7JN1bBNDGhNePUbPRdlM2aeHaoXA.; SUB=_2A25Mnn1IDeRhGeBL7VsU8SzJzjyIHXVv6umArDV8PUNbmtB-LUn9kW9NRvFrV0ZBgLK1SIj5SA3G6hgzugm1SYvS; wvr=6; _s_tentry=-; Apache=3679075520440.2803.1637485851733; ULV=1637485851738:41:6:1:3679075520440.2803.1637485851733:1636733787083; webim_unReadCount=%7B%22time%22%3A1637485866279%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A40%2C%22msgbox%22%3A0%7D; WBStorage=5fd44921|undefined'}
-        headers2 = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36 Edg/95.0.1020.44',
-            'Cookie': 'SINAGLOBAL=2984020340573.4653.1615966504509; UOR=,,login.sina.com.cn; webim_unReadCount=%7B%22time%22%3A1636725673060%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A42%2C%22msgbox%22%3A0%7D; _s_tentry=login.sina.com.cn; Apache=2903802932720.7427.1636733787078; ULV=1636733787083:40:5:3:2903802932720.7427.1636733787078:1636725696399; WBStorage=5fd44921|undefined; login_sid_t=7de44892f656f3a956f56941a326cc83; cross_origin_proto=SSL; ALF=1668270078; SSOLoginState=1636734079; SCF=At9eOLw9o69sap1_tTXMdkUPPcB7_jux_87EDPewfgIT--SQlP57nGxTu7hOoBn2GTz39S1SjYf6QfokkKQMRn0.; SUB=_2A25MiuQuDeRhGeBL7VsU8SzJzjyIHXVv_lLmrDV8PUNbmtB-LRPSkW9NRvFrVzTwlK5mqNvLS5zWZzRRuBNJljoI; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh5h_i4eSgoD7jFisEd1k8Y5JpX5KzhUgL.FoqfSo.feKzfSK52dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcSKq4SK2ESK-7; wvr=6'}
         for url in urls:
             yield Request(url, callback=self.parse)
-            # if int(time.time()) % 3 == 0:
-            #     yield Request(url, callback=self.parse, headers=headers2)
-            # else:
-            #     yield Request(url, callback=self.parse, headers=headers1)
 
     def parse(self, response):
         sleep(random.randint(1, 3))

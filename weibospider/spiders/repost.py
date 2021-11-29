@@ -12,6 +12,7 @@ from scrapy import Spider
 from scrapy.http import Request
 import time
 from items import RepostItem
+from settings import REPOST_TWEET_ID
 from spiders.utils import extract_repost_content, time_fix
 
 class RepostSpider(Spider):
@@ -19,8 +20,8 @@ class RepostSpider(Spider):
     base_url = "https://weibo.cn"
 
     def start_requests(self):
-        tweet_ids = ['JtSFZ4eGg'] # url上找
-        urls = [f"{self.base_url}/repost/{tweet_id}?page=1" for tweet_id in tweet_ids]
+        tweet_ids = REPOST_TWEET_ID  # 想要爬取的微博id，在weibo.cn上找到相应微博，id就是url上的一串数
+        urls = [f"{self.base_url}/comment/hot/{tweet_id}?rl=1&page=1" for tweet_id in tweet_ids]
         for url in urls:
             yield Request(url, callback=self.parse)
 
@@ -41,7 +42,7 @@ class RepostSpider(Spider):
             if not repo_user_url:
                 continue
             repo_item = RepostItem()
-            #repo_item['_id'] = ''
+            # repo_item['_id'] = ''
             repo_item['crawl_time'] = int(time.time())
             repo_item['weibo_id'] = response.url.split('/')[-1].split('?')[0]
             repo_item['user_id'] = re.search(r'/u/(\d+)', repo_user_url[0]).group(1)

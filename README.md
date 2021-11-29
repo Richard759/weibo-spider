@@ -1,4 +1,4 @@
-**中文说明** | [English](./README_EN.md)
+**中文说明** 
 
 # WeiboSpider（基于GItHub上的开源项目进行改造）
 
@@ -87,7 +87,7 @@
 
 ### 拉取项目 && 安装依赖
 本项目Python版本为Python3.6
-```python
+```
 pip install -r requirements.txt
 ```
 
@@ -117,7 +117,7 @@ Cookie和user-agent字段替换成自己的
 通过关键词爬取微博由于weibo.cn中取消了这个功能，在对应的tweet.py中做了修改，因为网站不同，所以cookie需要单另添加在tweet.py文件的headers里
 
 ## 运行程序
-在/weibospider/spiders/目录下的各种py文件里修改uid，事件等等
+在/weibospider/目录下的各txt文件修改对应的weibo_id/user_id
 
 ### 抓取用户信息
 
@@ -141,6 +141,7 @@ python run_spider.py follow
 ![](./images/follow-spider.png)
 
 ### 抓取微博评论
+将需要获取评论的微博id存储在comment_tweet_ids.txt中
 ```bash
 python run_spider.py comment
 ```
@@ -157,6 +158,9 @@ python run_spider.py tweet
 
 ### 抓取包含关键词的微博
 在`./weibospider/spiders/tweet.py`中`start_requests`,urls选择`init_url_by_keywords()`
+- 可以在TWEET_DATE_WINDOW中修改爬取的时间窗口
+- 在TIME_DELTA中修改时间间隔（对于每天量很少的，通过加大时间间隔可以有效减少爬取到空页面的概率），
+- 通过修改ONLY_HOT, ONLY_ORIGIN的值，限制只爬取热门微博/原创微博（不能同时限制）
 ```bash
 python run_spider.py tweet
 ```

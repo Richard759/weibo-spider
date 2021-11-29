@@ -14,7 +14,7 @@ import time
 import random
 from items import CommentItem
 from spiders.utils import extract_comment_content, time_fix
-from settings import TWEET_ID
+from settings import COMMENT_TWEET_ID
 
 
 class CommentSpider(Spider):
@@ -22,7 +22,7 @@ class CommentSpider(Spider):
     base_url = "https://weibo.cn"
 
     def start_requests(self):
-        tweet_ids = TWEET_ID   # 想要爬取的微博id，在weibo.cn上找到相应微博，id就是url上的一串数
+        tweet_ids = COMMENT_TWEET_ID   # 想要爬取的微博id，在weibo.cn上找到相应微博，id就是url上的一串数
         urls = [f"{self.base_url}/comment/hot/{tweet_id}?rl=1&page=1" for tweet_id in tweet_ids]
         for url in urls:
             yield Request(url, callback=self.parse)
