@@ -21,7 +21,7 @@ class RepostSpider(Spider):
 
     def start_requests(self):
         tweet_ids = REPOST_TWEET_ID  # 想要爬取的微博id，在weibo.cn上找到相应微博，id就是url上的一串数
-        urls = [f"{self.base_url}/comment/hot/{tweet_id}?rl=1&page=1" for tweet_id in tweet_ids]
+        urls = [f"{self.base_url}/repost/{tweet_id}?rl=1&page=1" for tweet_id in tweet_ids]
         for url in urls:
             yield Request(url, callback=self.parse)
 

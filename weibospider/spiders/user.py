@@ -11,6 +11,7 @@ from scrapy import Selector, Spider
 from scrapy.http import Request
 import time
 from items import UserItem
+from settings import USER_ID
 
 
 class UserSpider(Spider):
@@ -18,7 +19,7 @@ class UserSpider(Spider):
     base_url = "https://weibo.cn"
 
     def start_requests(self):
-        user_ids = ['1087770692', '1699432410', '1266321801']  # url上找
+        user_ids = USER_ID
         urls = [f'{self.base_url}/{user_id}/info' for user_id in user_ids]
         for url in urls:
             yield Request(url, callback=self.parse)
