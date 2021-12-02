@@ -17,8 +17,9 @@ from spiders.user import UserSpider
 from spiders.fan import FanSpider
 from spiders.repost import RepostSpider
 
+mode = sys.argv[1]
+
 if __name__ == '__main__':
-    mode = sys.argv[1]
     os.environ['SCRAPY_SETTINGS_MODULE'] = f'settings'
     settings = get_project_settings()
     process = CrawlerProcess(settings)

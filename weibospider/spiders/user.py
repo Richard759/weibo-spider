@@ -28,7 +28,7 @@ class UserSpider(Spider):
         user_item = UserItem()
         user_item['crawl_time'] = int(time.time())
         selector = Selector(response)
-        user_item['_id'] = re.findall('(\d+)/info', response.url)[0]
+        user_item['_id'] = re.findall(r'(\d+)/info', response.url)[0]
         user_info_text = ";".join(selector.xpath('body/div[@class="c"]//text()').extract())
         nick_name = re.findall('昵称;?:?(.*?);', user_info_text)
         gender = re.findall('性别;?:?(.*?);', user_info_text)
@@ -75,13 +75,13 @@ class UserSpider(Spider):
     def parse_further_information(self, response):
         text = response.text
         user_item = response.meta['item']
-        tweets_num = re.findall('微博\[(\d+)\]', text)
+        tweets_num = re.findall(r'微博\[(\d+)\]', text)
         if tweets_num:
             user_item['tweets_num'] = int(tweets_num[0])
-        follows_num = re.findall('关注\[(\d+)\]', text)
+        follows_num = re.findall(r'关注\[(\d+)\]', text)
         if follows_num:
             user_item['follows_num'] = int(follows_num[0])
-        fans_num = re.findall('粉丝\[(\d+)\]', text)
+        fans_num = re.findall(r'粉丝\[(\s+)\]', text)
         if fans_num:
             user_item['fans_num'] = int(fans_num[0])
         yield user_item

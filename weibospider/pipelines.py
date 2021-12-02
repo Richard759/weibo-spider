@@ -9,7 +9,7 @@ class CsvFilePipeline(object):
             f_u = open("Users.csv", 'w', encoding='utf-8-sig', newline='')
             fieldnames_u = ['_id', 'nick_name', 'gender', 'province', 'city', 'brief_introduction',
                             'birthday', 'tweets_num', 'follows_num', 'fans_num', 'sex_orientation',
-                            'sentiment', 'vip_level', 'authentication', 'person_url', 'labels', 'crawl_time']
+                            'sentiment', 'vip_level', 'authentication', 'labels', 'crawl_time']
             self.Users = csv.DictWriter(f_u, fieldnames=fieldnames_u)
             self.Users.writeheader()
         elif mode == 'fan':
