@@ -15,6 +15,7 @@ from items import RepostItem
 from settings import REPOST_TWEET_ID
 from spiders.utils import extract_repost_content, time_fix
 
+
 class RepostSpider(Spider):
     name = "repost_spider"
     base_url = "https://weibo.cn"
@@ -36,7 +37,7 @@ class RepostSpider(Spider):
                     page_url = response.url.replace('page=1', 'page={}'.format(page_num))
                     yield Request(page_url, self.parse, dont_filter=True, meta=response.meta)
         tree_node = etree.HTML(response.body)
-        repo_nodes = tree_node.xpath('//div[@class="c" and not(contains(@id,"M_"))]') 
+        repo_nodes = tree_node.xpath('//div[@class="c" and not(contains(@id,"M_"))]')
         for repo_node in repo_nodes:
             repo_user_url = repo_node.xpath('.//a[contains(@href,"/u/")]/@href')
             if not repo_user_url:
@@ -49,6 +50,5 @@ class RepostSpider(Spider):
             content = extract_repost_content(etree.tostring(repo_node, encoding='unicode'))
             repo_item['content'] = content.split(':', maxsplit=1)[1]
             created_at_info = repo_node.xpath('.//span[@class="ct"]/text()')[0].split('\xa0')
-            repo_item['created_at'] = time_fix((created_at_info[0]+created_at_info[1]))
+            repo_item['created_at'] = time_fix((created_at_info[0] + created_at_info[1]))
             yield repo_item
-            
