@@ -119,17 +119,26 @@ class TweetSpider(Spider):
                 if original:
                     tweet_item['origin_weibo'] = original[0]
                 weibo_url = ''.join(tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/@href'))  # 微博URL
+                user_name = ''.join(tweet_node.xpath('.//div[@class="info"]/div/a[@class="name"]/text()'))
                 tweet_item['weibo_url'] = weibo_url
+                tweet_item['user_name'] = user_name
                 try:
                     tweet_item['_id'] = re.findall(r'//weibo.com/\d+/(.*)\?refer_flag=.*', weibo_url)[0]  # 微博id
                     tweet_item['user_id'] = re.findall(r'//weibo.com/(\d+)/.*\?refer_flag=.*', weibo_url)[0]
                 except IndexError as e:
                     print("解析微博id出错啦！")
-                tweet_item['tool'] = ''.join(tweet_node.xpath(
-                    './/div[@class="content"]/p[@class="from"]/a[2]/text()')).replace('\n', "").replace(
-                    '\r', "").replace(' ', "")
                 info = tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/text()')[-1].replace(
                     '\n', "").replace('\r', "").replace(' ', "")  # 微博发表时间
+                if info == '来自主持人的推荐':
+                    info = tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[2]/text()')[-1].replace(
+                        '\n', "").replace('\r', "").replace(' ', "")  # 微博发表时间
+                    tweet_item['tool'] = ''.join(tweet_node.xpath(
+                        './/div[@class="content"]/p[@class="from"]/a[3]/text()')).replace('\n', "").replace(
+                        '\r', "").replace(' ', "")
+                else:
+                    tweet_item['tool'] = ''.join(tweet_node.xpath(
+                        './/div[@class="content"]/p[@class="from"]/a[2]/text()')).replace('\n', "").replace(
+                        '\r', "").replace(' ', "")
                 if re.match(r'^20..年..月..日.*', info):
                     time_index = f'{info[0:4]}-{info[5:7]}-{info[8:10]} {info[11:]}'
                 elif re.match(r'^..月..日.*', info):
@@ -139,6 +148,7 @@ class TweetSpider(Spider):
                 else:
                     time_index = info
                 tweet_item['created_at'] = time_index
+
                 try:
                     a_list = tweet_node.xpath('.//p[@class="txt"]/a')
                     local_info = ''

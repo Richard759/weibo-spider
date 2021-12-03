@@ -25,26 +25,24 @@ ONLY_HOT = True
 ONLY_ORIGIN = False
 
 # 爬虫时间间隔
-TIME_DELTA = 1
+TIME_DELTA = 365
 
 TWEET_DATE_WINDOW = {
-    'start_date': '2020-06-01',
-    'end_date': '2021-11-20'
+    'start_date': '2019-01-01',
+    'end_date': '2019-12-31'
 }
 
-fff = ['中华文化', '创意文化', '文化']
-lll = ['奇妙游', '河南卫视']
-TWEET_KEY_WORDS = []
+# fff = ['中华文化', '创意文化', '文化']
+# lll = ['奇妙游', '河南卫视']
+# TWEET_KEY_WORDS = []
+#
+# for ff in fff:
+#     for ll in lll:
+#         TWEET_KEY_WORDS.append(ff + ll)
 
-for ff in fff:
-    for ll in lll:
-        TWEET_KEY_WORDS.append(ff + ll)
-
-# TWEET_KEY_WORDS = [
-#     "丽江抢劫",
-#     "丽江毁容",
-#     "丽江打人"
-# ]
+TWEET_KEY_WORDS = [
+    '#在线旅游大数据杀熟或被处罚#'
+]
 
 COMMENT_TWEET_ID = []
 

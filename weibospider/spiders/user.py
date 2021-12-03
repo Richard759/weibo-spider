@@ -1,17 +1,33 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-File Description: 
-Author: nghuyong
-Mail: nghuyong@163.com
-Created Time: 2020/4/14
-"""
+
 import re
 from scrapy import Selector, Spider
 from scrapy.http import Request
 import time
 from items import UserItem
 from settings import USER_ID
+
+
+def get_weibo_num(string):
+    if string[-1] == '万':
+        return int(float(string[:-1]) * 10000)
+    elif string[-1] == '亿':
+        return int(float(string[:-1]) * 100000000)
+    else:
+        return int(string)
+
+
+def parse_further_information(response):
+    text = response.text
+    user_item = response.meta['item']
+    tweets_num = re.findall(r'微博\[(.*?)\]', text)
+    user_item['tweets_num'] = get_weibo_num(tweets_num[0])
+    follows_num = re.findall(r'关注\[(.*?)\]', text)
+    user_item['follows_num'] = get_weibo_num(follows_num[0])
+    fans_num = re.findall(r'粉丝\[(.*?)\]', text)
+    user_item['fans_num'] = get_weibo_num(fans_num[0])
+    yield user_item
 
 
 class UserSpider(Spider):
@@ -61,7 +77,7 @@ class UserSpider(Spider):
         if sentiment and sentiment[0]:
             user_item["sentiment"] = sentiment[0].replace(u"\xa0", "")
         if vip_level and vip_level[0]:
-            user_item["vip_level"] = vip_level[0].replace(u"\xa0", "")
+            user_item["vip_level"] = vip_level[0].replace(u"\xa0", "")[1:]
         if authentication and authentication[0]:
             user_item["authentication"] = authentication[0].replace(u"\xa0", "")
         if labels and labels[0]:
@@ -69,19 +85,5 @@ class UserSpider(Spider):
         request_meta = response.meta
         request_meta['item'] = user_item
         yield Request(self.base_url + '/u/{}'.format(user_item['_id']),
-                      callback=self.parse_further_information,
+                      callback=parse_further_information,
                       meta=request_meta, dont_filter=True, priority=1)
-
-    def parse_further_information(self, response):
-        text = response.text
-        user_item = response.meta['item']
-        tweets_num = re.findall(r'微博\[(\d+)\]', text)
-        if tweets_num:
-            user_item['tweets_num'] = int(tweets_num[0])
-        follows_num = re.findall(r'关注\[(\d+)\]', text)
-        if follows_num:
-            user_item['follows_num'] = int(follows_num[0])
-        fans_num = re.findall(r'粉丝\[(\s+)\]', text)
-        if fans_num:
-            user_item['fans_num'] = int(fans_num[0])
-        yield user_item

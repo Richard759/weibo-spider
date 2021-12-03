@@ -24,8 +24,9 @@ class CsvFilePipeline(object):
             self.Relationships.writeheader()
         elif mode == 'tweet':
             f_t = open("Tweets.csv", 'w', encoding='utf-8-sig', newline='')
-            fieldnames_t = ["_id", "comment_num", "content", "crawl_time", "created_at", "image_url", "like_num",
-                            "location_map_info", "origin_weibo", "repost_num", "tool", "user_id", "weibo_url"]
+            fieldnames_t = ["_id", "crawl_time", "content", "created_at", "user_id", "user_name", "image_url",
+                            "like_num", "comment_num", "location_map_info", "origin_weibo", "repost_num", "tool",
+                            "weibo_url"]
             self.Tweets = csv.DictWriter(f_t, fieldnames=fieldnames_t)
             self.Tweets.writeheader()
         elif mode == 'comment':
