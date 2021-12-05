@@ -180,7 +180,7 @@ class TweetSpider(Spider):
                 else:
                     tweet_item['comment_num'] = '0'
                 print(like, repost, comment)
-                all_content_link = tweet_node.xpath('.//a[text()="展开全文" and contains(@action-type,"fl_unfold")]')
+                all_content_link = tweet_node.xpath('.//a[contains(@action-type,"fl_unfold")]')
                 repost_link = tweet_node.xpath('.//div[@node-type="feed_list_forwardContent"]')
                 if all_content_link:
                     if repost_link:

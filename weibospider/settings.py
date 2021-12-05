@@ -21,28 +21,28 @@ NEW_HEADERS = {
 DEFAULT_REQUEST_HEADERS = NEW_HEADERS
 
 # 原创微博和热门微博同时只能满足一个
-ONLY_HOT = True
+ONLY_HOT = False
 ONLY_ORIGIN = False
 
 # 爬虫时间间隔
-TIME_DELTA = 365
+TIME_DELTA = 180
 
 TWEET_DATE_WINDOW = {
-    'start_date': '2019-01-01',
-    'end_date': '2019-12-31'
+    'start_date': '2021-12-01',
+    'end_date': '2021-12-05'
 }
 
-# fff = ['中华文化', '创意文化', '文化']
-# lll = ['奇妙游', '河南卫视']
-# TWEET_KEY_WORDS = []
-#
-# for ff in fff:
-#     for ll in lll:
-#         TWEET_KEY_WORDS.append(ff + ll)
+fff = ['中华文化', '创意文化', '文化']
+lll = ['奇妙游', '河南卫视']
+TWEET_KEY_WORDS = []
 
-TWEET_KEY_WORDS = [
-    '#在线旅游大数据杀熟或被处罚#'
-]
+for ff in fff:
+    for ll in lll:
+        TWEET_KEY_WORDS.append(ff + ll)
+
+# TWEET_KEY_WORDS = [
+#     '#在线旅游大数据杀熟或被处罚#'
+# ]
 
 COMMENT_TWEET_ID = []
 
