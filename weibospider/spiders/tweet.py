@@ -188,7 +188,7 @@ class TweetSpider(Spider):
                                                        '/a[contains(@action-type,"fl_unfold")]')
                         raw_more = tweet_node.xpath(
                             './/div[@node-type="feed_list_forwardContent"]/p[@node-type="feed_list_content"]'
-                            '/a[text()="展开全文" and contains(@action-type,"fl_unfold")]')
+                            '/a[contains(@action-type,"fl_unfold")]')
                         if repost_more:
                             repost_content = ''.join(tweet_node.xpath(
                                 './/div[@class="card-feed"]/div[@class="content"]'
