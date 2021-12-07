@@ -1,6 +1,6 @@
-**中文说明** 
+# WeiboSpider
 
-# WeiboSpider（基于GItHub上的开源项目进行改造）
+**基于nghuyong/WeiboSpiderde改造**
 
 
 ## 项目说明
@@ -114,7 +114,7 @@ Cookie和user-agent字段替换成自己的
 
 **Tips:**
 
-通过关键词爬取微博由于weibo.cn中取消了这个功能，在对应的tweet.py中做了修改，因为网站不同，所以cookie需要单另添加在tweet.py文件的headers里
+通过关键词爬取微博由于weibo.cn中取消了这个功能，在对应的tweet.py中做了修改，因而需要在weibo.com和weibo.cn都登陆过，再获取cookie写入
 
 ## 运行程序
 在/weibospider/目录下的各txt文件修改对应的weibo_id/user_id
@@ -159,7 +159,7 @@ python run_spider.py tweet
 ### 抓取包含关键词的微博
 在`./weibospider/spiders/tweet.py`中`start_requests`,urls选择`init_url_by_keywords()`
 - 可以在TWEET_DATE_WINDOW中修改爬取的时间窗口
-- 在TIME_DELTA中修改时间间隔（对于每天量很少的，通过加大时间间隔可以有效减少爬取到空页面的概率），
+- 在MAX_DELTA中修改最大时间间隔（一次搜索的最大间隔，如果内容超过50页，会动态缩小区间），
 - 通过修改ONLY_HOT, ONLY_ORIGIN的值，限制只爬取热门微博/原创微博（不能同时限制）
 ```bash
 python run_spider.py tweet

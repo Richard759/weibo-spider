@@ -11,13 +11,9 @@ import re
 from lxml import etree
 from scrapy import Spider
 from scrapy.http import Request
-import time
-from settings import TWEET_DATE_WINDOW, TWEET_KEY_WORDS, ONLY_HOT, ONLY_ORIGIN, TIME_DELTA
+from settings import TWEET_DATE_WINDOW, TWEET_KEY_WORDS, ONLY_HOT, ONLY_ORIGIN, MAX_DELTA
 from items import TweetItem
-from spiders.utils import time_fix, extract_weibo_content
 import random
-import pandas as pd
-import csv
 from time import sleep
 import time
 
@@ -67,13 +63,16 @@ class TweetSpider(Spider):
             keywords = TWEET_KEY_WORDS  # 按话题找微博，需要设置起止时间
             date_start = datetime.datetime.strptime(TWEET_DATE_WINDOW["start_date"], '%Y-%m-%d')
             date_end = datetime.datetime.strptime(TWEET_DATE_WINDOW["end_date"], '%Y-%m-%d')
-            time_spread = datetime.timedelta(days=TIME_DELTA)
+            time_spread = datetime.timedelta(days=MAX_DELTA)
             if ONLY_ORIGIN:
-                url_format = "https://s.weibo.com/weibo?q={}&scope=ori&typeall=1&suball=1&timescope=custom:{}:{}&Refer=g&page=1"
+                url_format = ("https://s.weibo.com/weibo?q={}&scope=ori&typeall=1"
+                              "&suball=1&timescope=custom:{}:{}&Refer=g&page=1")
             elif ONLY_HOT:
-                url_format = "https://s.weibo.com/weibo?q={}&xsort=hot&typeall=1&suball=1&timescope=custom:{}:{}&Refer=g&page=1"
+                url_format = ("https://s.weibo.com/weibo?q={}&xsort=hot&typeall=1"
+                              "&suball=1&timescope=custom:{}:{}&Refer=g&page=1")
             else:
-                url_format = "https://s.weibo.com/weibo?q={}&typeall=1&suball=1&timescope=custom:{}:{}&Refer=g&page=1"
+                url_format = ("https://s.weibo.com/weibo?q={}&typeall=1&suball=1"
+                              "&timescope=custom:{}:{}&Refer=g&page=1")
             # url_format = "https://s.weibo.com/weibo?q={}&timescope=custom:{}:{}&Refer=SWeibo_box&page=1"
             urls = []
             while date_start <= date_end:
@@ -82,7 +81,7 @@ class TweetSpider(Spider):
                     keyword = keyword.replace('#', '%23')
                     day_string_end = date_end.strftime("%Y-%m-%d")
                     # day_string_start = date_end.strftime("%Y-%m-%d")
-                    day_string_start = (date_end - datetime.timedelta(days=TIME_DELTA - 1)).strftime("%Y-%m-%d")
+                    day_string_start = (date_end - datetime.timedelta(days=MAX_DELTA - 1)).strftime("%Y-%m-%d")
                     urls.append(url_format.format(keyword, day_string_start, day_string_end))
                 date_end = date_end - time_spread
             url_set = list(set(urls))
@@ -99,31 +98,55 @@ class TweetSpider(Spider):
         tree_node = etree.HTML(response.body)
         # print(response.body)
         all_page = len(tree_node.xpath('//div[@class="m-page"]//ul[@class="s-scroll"]//li//a//text()'))
-        if all_page == 50:
-            start_date, end_date = re.findall(r'.*custom:(.*?):(.*?)&Refer=g.*', response.url)
+        start_date, end_date = re.findall(r'.*custom:(.*?):(.*?)&Refer=g.*', response.url)[0]
+        if all_page == 50 and not ((len(start_date) == 12 or len(start_date) == 13) and start_date == end_date):
             if len(start_date) == 10:
                 date_start = datetime.datetime.strptime(start_date, '%Y-%m-%d')
                 date_end = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+                if (date_start - date_end).days == 0:
+                    start_string = start_date + '-0'
+                    end_string = start_date + '-11'
+                    new_url_1 = re.sub(r'(custom):.*?(:.*?&Refer=g)', r'\1:%s\2' % start_string, response.url)
+                    new_url_1 = re.sub(r'(custom:.*?):.*?(&Refer=g)',  r'\1:%s\2' % end_string, new_url_1)
+                    yield Request(new_url_1, callback=self.parse)
+                    start_string = start_date + '-12'
+                    end_string = start_date + '-23'
+                    new_url_2 = re.sub(r'(custom):.*?(:.*?&Refer=g)', r'\1:%s\2' % start_string, response.url)
+                    new_url_2 = re.sub(r'(custom:.*?):.*?(&Refer=g)',  r'\1:%s\2' % end_string, new_url_2)
+                    yield Request(new_url_2, callback=self.parse)
+                else:
+                    date_start = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+                    date_end = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+                    day_delta = (date_end - date_start).days + 1
+                    new_date = date_end - datetime.timedelta(days=int(day_delta / 2))
+                    day_string = new_date.strftime("%Y-%m-%d")
+                    new_url_1 = re.sub(r'(custom:.*?):.*?(&Refer=g)', r'\1:%s\2' % day_string, response.url)
+                    print(new_url_1)
+                    yield Request(new_url_1, callback=self.parse)
+                    day_string = (new_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+                    new_url_2 = re.sub(r'(custom):.*?(:.*?&Refer=g)', r'\1:%s\2' % day_string, response.url)
+                    yield Request(new_url_2, callback=self.parse)
+            elif len(start_date) == 12 or len(start_date) == 13:
+                date_start = datetime.datetime.strptime(start_date, '%Y-%m-%d-%H')
+                date_end = datetime.datetime.strptime(end_date, '%Y-%m-%d-%H')
+                # 2021-12-01-0:2021-12-01-3
+                hour_delta = (date_end - date_start).seconds / 3600 + 1
+                new_date = date_end - datetime.timedelta(hours=int(hour_delta / 2))
+                day_string = new_date.strftime("%Y-%m-%d-%H")
+                new_url_1 = re.sub(r'(custom:.*?):.*?(&Refer=g)', r'\1:%s\2' % day_string, response.url)
+                yield Request(new_url_1, callback=self.parse)
+                day_string = (new_date + datetime.timedelta(hours=1)).strftime("%Y-%m-%d-%H")
+                new_url_2 = re.sub(r'(custom):.*?(:.*?&Refer=g)', r'\1:%s\2' % day_string, response.url)
+                yield Request(new_url_2, callback=self.parse)
             else:
-                date_start = datetime.datetime.strptime(start_date, '%Y-%m-%d-%h')
-                date_end = datetime.datetime.strptime(end_date, '%Y-%m-%d-%h')
-                if (date_start - date_end).seconds > 3600:
-                    # 2021-12-01-0:2021-12-01-3
-                    if (date_start - date_end).days <= 1:
-                        hour_delta = (date_start - date_end).seconds / 3600
-                        new_date = date_end - datetime.timedelta(hours=int(hour_delta / 2))
-                        day_string_end = new_date.strftime("%Y-%m-%d-%h")
-                        new_url_1 = re.sub(r'.*custom:.*?:(.*?)&Refer=g.*', 'as', response.url)
-                    print(123)
-                    yield Request(response.url, callback=self.parse)
+                print(start_date)
+                raise KeyError
         else:
             if response.url.endswith('page=1'):
                 sleep(random.randint(1, 3))
-                start_date, end_date = re.findall(r'.*custom:(.*?):(.*?)&Refer=g.*', response.url)
                 for page_num in range(2, all_page + 1):
                     page_url = response.url.replace('page=1', 'page={}'.format(page_num))
                     yield Request(page_url, self.parse, dont_filter=True, meta=response.meta)
-
             try:
                 tweet_nodes = tree_node.xpath('.//div[@class="card-wrap" and @action-type="feed_list_item"]')
                 no_result = tree_node.xpath('.//div[@class="card card-no-result s-pt20b40"]')
@@ -138,7 +161,8 @@ class TweetSpider(Spider):
                     # weibo_id_list = df['weibo_id'].tolist()
                     if original:
                         tweet_item['origin_weibo'] = original[0]
-                    weibo_url = ''.join(tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/@href'))  # 微博URL
+                    weibo_url = ''.join(
+                        tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/@href'))  # 微博URL
                     user_name = ''.join(tweet_node.xpath('.//div[@class="info"]/div/a[@class="name"]/text()'))
                     tweet_item['weibo_url'] = weibo_url
                     tweet_item['user_name'] = user_name
@@ -182,9 +206,11 @@ class TweetSpider(Spider):
                         tweet_item['location_map_info'] = local_info
                     except Exception as e:
                         print('获取位置出错了: ', e)
-                    repost = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[2]/a/text()')[0].replace(
+                    repost = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[2]/a/text()')[
+                        0].replace(
                         ' ', "")
-                    comment = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[3]/a/text()')[0].replace(
+                    comment = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[3]/a/text()')[
+                        0].replace(
                         ' ', "")
                     like = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[4]/a/em/text()')
                     if like:
