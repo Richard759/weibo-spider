@@ -82,7 +82,7 @@ class TweetSpider(Spider):
                     keyword = keyword.replace('#', '%23')
                     day_string_end = date_end.strftime("%Y-%m-%d")
                     # day_string_start = date_end.strftime("%Y-%m-%d")
-                    day_string_start = (date_end - datetime.timedelta(days=TIME_DELTA-1)).strftime("%Y-%m-%d")
+                    day_string_start = (date_end - datetime.timedelta(days=TIME_DELTA - 1)).strftime("%Y-%m-%d")
                     urls.append(url_format.format(keyword, day_string_start, day_string_end))
                 date_end = date_end - time_spread
             url_set = list(set(urls))
@@ -98,136 +98,156 @@ class TweetSpider(Spider):
         sleep(random.randint(1, 3))
         tree_node = etree.HTML(response.body)
         # print(response.body)
-        if response.url.endswith('page=1'):
-            sleep(random.randint(1, 3))
-            all_page = len(tree_node.xpath('//div[@class="m-page"]//ul[@class="s-scroll"]//li//a//text()'))
-            for page_num in range(2, all_page + 1):
-                page_url = response.url.replace('page=1', 'page={}'.format(page_num))
-                yield Request(page_url, self.parse, dont_filter=True, meta=response.meta)
-        try:
-            tweet_nodes = tree_node.xpath('.//div[@class="card-wrap" and @action-type="feed_list_item"]')
-            no_result = tree_node.xpath('.//div[@class="card card-no-result s-pt20b40"]')
-            if no_result:
-                return
-            for tweet_node in tweet_nodes:
-                tweet_item = TweetItem()
-                tweet_item['crawl_time'] = int(time.time())
-                original = tweet_node.xpath('.//div[@class="func"]/p[@class="from"]/a[1]/@href')  # 是否原创
-                # print(original)
-                # df = pd.read_csv('weiboid.csv', encoding='utf-8-sig')
-                # weibo_id_list = df['weibo_id'].tolist()
-                if original:
-                    tweet_item['origin_weibo'] = original[0]
-                weibo_url = ''.join(tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/@href'))  # 微博URL
-                user_name = ''.join(tweet_node.xpath('.//div[@class="info"]/div/a[@class="name"]/text()'))
-                tweet_item['weibo_url'] = weibo_url
-                tweet_item['user_name'] = user_name
-                try:
-                    tweet_item['_id'] = re.findall(r'//weibo.com/\d+/(.*)\?refer_flag=.*', weibo_url)[0]  # 微博id
-                    tweet_item['user_id'] = re.findall(r'//weibo.com/(\d+)/.*\?refer_flag=.*', weibo_url)[0]
-                except IndexError as e:
-                    print("解析微博id出错啦！")
-                info = tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/text()')[-1].replace(
-                    '\n', "").replace('\r', "").replace(' ', "")  # 微博发表时间
-                if info == '来自主持人的推荐':
-                    info = tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[2]/text()')[-1].replace(
-                        '\n', "").replace('\r', "").replace(' ', "")  # 微博发表时间
-                    tweet_item['tool'] = ''.join(tweet_node.xpath(
-                        './/div[@class="content"]/p[@class="from"]/a[3]/text()')).replace('\n', "").replace(
-                        '\r', "").replace(' ', "")
-                else:
-                    tweet_item['tool'] = ''.join(tweet_node.xpath(
-                        './/div[@class="content"]/p[@class="from"]/a[2]/text()')).replace('\n', "").replace(
-                        '\r', "").replace(' ', "")
-                if re.match(r'^20..年..月..日.*', info):
-                    time_index = f'{info[0:4]}-{info[5:7]}-{info[8:10]} {info[11:]}'
-                elif re.match(r'^..月..日.*', info):
-                    time_index = f'2021-{info[0:2]}-{info[3:5]} {info[6:]}'
-                elif re.match(r'^今天.*', info):
-                    time_index = f'{datetime.date.today()} {info[2:]}'
-                else:
-                    time_index = info
-                tweet_item['created_at'] = time_index
+        all_page = len(tree_node.xpath('//div[@class="m-page"]//ul[@class="s-scroll"]//li//a//text()'))
+        if all_page == 50:
+            start_date, end_date = re.findall(r'.*custom:(.*?):(.*?)&Refer=g.*', response.url)
+            if len(start_date) == 10:
+                date_start = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+                date_end = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+            else:
+                date_start = datetime.datetime.strptime(start_date, '%Y-%m-%d-%h')
+                date_end = datetime.datetime.strptime(end_date, '%Y-%m-%d-%h')
+                if (date_start - date_end).seconds > 3600:
+                    # 2021-12-01-0:2021-12-01-3
+                    if (date_start - date_end).days <= 1:
+                        hour_delta = (date_start - date_end).seconds / 3600
+                        new_date = date_end - datetime.timedelta(hours=int(hour_delta / 2))
+                        day_string_end = new_date.strftime("%Y-%m-%d-%h")
+                        new_url_1 = re.sub(r'.*custom:.*?:(.*?)&Refer=g.*', 'as', response.url)
+                    print(123)
+                    yield Request(response.url, callback=self.parse)
+        else:
+            if response.url.endswith('page=1'):
+                sleep(random.randint(1, 3))
+                start_date, end_date = re.findall(r'.*custom:(.*?):(.*?)&Refer=g.*', response.url)
+                for page_num in range(2, all_page + 1):
+                    page_url = response.url.replace('page=1', 'page={}'.format(page_num))
+                    yield Request(page_url, self.parse, dont_filter=True, meta=response.meta)
 
-                try:
-                    a_list = tweet_node.xpath('.//p[@class="txt"]/a')
-                    local_info = ''
-                    if len(a_list) > 0:
-                        for i in a_list:
-                            text_list = i.xpath('.//i/text()')
-                            if len(text_list) > 0:
-                                text = text_list[0]
-                                if str(text) == '2':
-                                    local_info = str(''.join(i.xpath('.//text()')))[1:]
-                    tweet_item['location_map_info'] = local_info
-                except Exception as e:
-                    print('获取位置出错了: ', e)
-                repost = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[2]/a/text()')[0].replace(
-                    ' ', "")
-                comment = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[3]/a/text()')[0].replace(
-                    ' ', "")
-                like = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[4]/a/em/text()')
-                if like:
-                    tweet_item['like_num'] = like[0]
-                else:
-                    tweet_item['like_num'] = '0'
-                if repost[:2] == '转发' and len(repost) > 2:
-                    tweet_item['repost_num'] = repost[2:]
-                else:
-                    tweet_item['repost_num'] = '0'
-                if comment[:2] == '评论' and len(comment) > 2:
-                    tweet_item['comment_num'] = comment[2:]
-                else:
-                    tweet_item['comment_num'] = '0'
-                print(like, repost, comment)
-                all_content_link = tweet_node.xpath('.//a[contains(@action-type,"fl_unfold")]')
-                repost_link = tweet_node.xpath('.//div[@node-type="feed_list_forwardContent"]')
-                if all_content_link:
-                    if repost_link:
-                        repost_more = tweet_node.xpath('.//div[@class="content"]/p[@node-type="feed_list_content"]'
-                                                       '/a[contains(@action-type,"fl_unfold")]')
-                        raw_more = tweet_node.xpath(
-                            './/div[@node-type="feed_list_forwardContent"]/p[@node-type="feed_list_content"]'
-                            '/a[contains(@action-type,"fl_unfold")]')
-                        if repost_more:
-                            repost_content = ''.join(tweet_node.xpath(
-                                './/div[@class="card-feed"]/div[@class="content"]'
-                                '/p[@node-type="feed_list_content_full"]//text()')).replace(
-                                '\n', "").replace('\r', "").replace(' ', "")[:-5]
+            try:
+                tweet_nodes = tree_node.xpath('.//div[@class="card-wrap" and @action-type="feed_list_item"]')
+                no_result = tree_node.xpath('.//div[@class="card card-no-result s-pt20b40"]')
+                if no_result:
+                    return
+                for tweet_node in tweet_nodes:
+                    tweet_item = TweetItem()
+                    tweet_item['crawl_time'] = int(time.time())
+                    original = tweet_node.xpath('.//div[@class="func"]/p[@class="from"]/a[1]/@href')  # 是否原创
+                    # print(original)
+                    # df = pd.read_csv('weiboid.csv', encoding='utf-8-sig')
+                    # weibo_id_list = df['weibo_id'].tolist()
+                    if original:
+                        tweet_item['origin_weibo'] = original[0]
+                    weibo_url = ''.join(tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/@href'))  # 微博URL
+                    user_name = ''.join(tweet_node.xpath('.//div[@class="info"]/div/a[@class="name"]/text()'))
+                    tweet_item['weibo_url'] = weibo_url
+                    tweet_item['user_name'] = user_name
+                    try:
+                        tweet_item['_id'] = re.findall(r'//weibo.com/\d+/(.*)\?refer_flag=.*', weibo_url)[0]  # 微博id
+                        tweet_item['user_id'] = re.findall(r'//weibo.com/(\d+)/.*\?refer_flag=.*', weibo_url)[0]
+                    except IndexError as e:
+                        print("解析微博id出错啦！")
+                    info = tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/text()')[-1].replace(
+                        '\n', "").replace('\r', "").replace(' ', "")  # 微博发表时间
+                    if info == '来自主持人的推荐':
+                        info = tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[2]/text()')[-1].replace(
+                            '\n', "").replace('\r', "").replace(' ', "")  # 微博发表时间
+                        tweet_item['tool'] = ''.join(tweet_node.xpath(
+                            './/div[@class="content"]/p[@class="from"]/a[3]/text()')).replace('\n', "").replace(
+                            '\r', "").replace(' ', "")
+                    else:
+                        tweet_item['tool'] = ''.join(tweet_node.xpath(
+                            './/div[@class="content"]/p[@class="from"]/a[2]/text()')).replace('\n', "").replace(
+                            '\r', "").replace(' ', "")
+                    if re.match(r'^20..年..月..日.*', info):
+                        time_index = f'{info[0:4]}-{info[5:7]}-{info[8:10]} {info[11:]}'
+                    elif re.match(r'^..月..日.*', info):
+                        time_index = f'2021-{info[0:2]}-{info[3:5]} {info[6:]}'
+                    elif re.match(r'^今天.*', info):
+                        time_index = f'{datetime.date.today()} {info[2:]}'
+                    else:
+                        time_index = info
+                    tweet_item['created_at'] = time_index
+
+                    try:
+                        a_list = tweet_node.xpath('.//p[@class="txt"]/a')
+                        local_info = ''
+                        if len(a_list) > 0:
+                            for i in a_list:
+                                text_list = i.xpath('.//i/text()')
+                                if len(text_list) > 0:
+                                    text = text_list[0]
+                                    if str(text) == '2':
+                                        local_info = str(''.join(i.xpath('.//text()')))[1:]
+                        tweet_item['location_map_info'] = local_info
+                    except Exception as e:
+                        print('获取位置出错了: ', e)
+                    repost = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[2]/a/text()')[0].replace(
+                        ' ', "")
+                    comment = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[3]/a/text()')[0].replace(
+                        ' ', "")
+                    like = tweet_node.xpath('.//div[@class="card"]/div[@class="card-act"]/ul/li[4]/a/em/text()')
+                    if like:
+                        tweet_item['like_num'] = like[0]
+                    else:
+                        tweet_item['like_num'] = '0'
+                    if repost[:2] == '转发' and len(repost) > 2:
+                        tweet_item['repost_num'] = repost[2:]
+                    else:
+                        tweet_item['repost_num'] = '0'
+                    if comment[:2] == '评论' and len(comment) > 2:
+                        tweet_item['comment_num'] = comment[2:]
+                    else:
+                        tweet_item['comment_num'] = '0'
+                    print(like, repost, comment)
+                    all_content_link = tweet_node.xpath('.//a[contains(@action-type,"fl_unfold")]')
+                    repost_link = tweet_node.xpath('.//div[@node-type="feed_list_forwardContent"]')
+                    if all_content_link:
+                        if repost_link:
+                            repost_more = tweet_node.xpath('.//div[@class="content"]/p[@node-type="feed_list_content"]'
+                                                           '/a[contains(@action-type,"fl_unfold")]')
+                            raw_more = tweet_node.xpath(
+                                './/div[@node-type="feed_list_forwardContent"]/p[@node-type="feed_list_content"]'
+                                '/a[contains(@action-type,"fl_unfold")]')
+                            if repost_more:
+                                repost_content = ''.join(tweet_node.xpath(
+                                    './/div[@class="card-feed"]/div[@class="content"]'
+                                    '/p[@node-type="feed_list_content_full"]//text()')).replace(
+                                    '\n', "").replace('\r', "").replace(' ', "")[:-5]
+                            else:
+                                repost_content = ''.join(tweet_node.xpath(
+                                    './/div[@class="card-feed"]/div[@class="content"]'
+                                    '/p[@node-type="feed_list_content"]//text()')).replace(
+                                    '\n', "").replace('\r', "").replace(' ', "")
+                            if raw_more:
+                                raw_content = ''.join(tweet_node.xpath(
+                                    './/div[@node-type="feed_list_forwardContent"]'
+                                    '/p[@node-type="feed_list_content_full"]//text()')).replace(
+                                    '\n', "").replace('\r', "").replace(' ', "")[:-5]
+                            else:
+                                raw_content = ''.join(tweet_node.xpath(
+                                    './/div[@node-type="feed_list_forwardContent"]'
+                                    '/p[@node-type="feed_list_content"]//text()')).replace(
+                                    '\n', "").replace('\r', "").replace(' ', "")
+                            tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'
                         else:
-                            repost_content = ''.join(tweet_node.xpath(
-                                './/div[@class="card-feed"]/div[@class="content"]'
-                                '/p[@node-type="feed_list_content"]//text()')).replace(
-                                '\n', "").replace('\r', "").replace(' ', "")
-                        if raw_more:
-                            raw_content = ''.join(tweet_node.xpath(
-                                './/div[@node-type="feed_list_forwardContent"]'
-                                '/p[@node-type="feed_list_content_full"]//text()')).replace(
+                            tweet_item['content'] = ''.join(tweet_node.xpath(
+                                './/div[@class="content"]/p[@node-type="feed_list_content_full"]//text()')).replace(
                                 '\n', "").replace('\r', "").replace(' ', "")[:-5]
-                        else:
-                            raw_content = ''.join(tweet_node.xpath(
-                                './/div[@node-type="feed_list_forwardContent"]'
-                                '/p[@node-type="feed_list_content"]//text()')).replace(
-                                '\n', "").replace('\r', "").replace(' ', "")
+                    elif repost_link:
+                        repost_content = ''.join(tweet_node.xpath(
+                            './/div[@class="card-feed"]/div[@class="content"]'
+                            '/p[@node-type="feed_list_content"]//text()')).replace(
+                            '\n', "").replace('\r', "").replace(' ', "")
+                        raw_content = ''.join(tweet_node.xpath(
+                            './/div[@node-type="feed_list_forwardContent"]'
+                            '/p[@node-type="feed_list_content"]//text()')).replace(
+                            '\n', "").replace('\r', "").replace(' ', "")[:-5]
                         tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'
                     else:
                         tweet_item['content'] = ''.join(tweet_node.xpath(
-                            './/div[@class="content"]/p[@node-type="feed_list_content_full"]//text()')).replace(
-                            '\n', "").replace('\r', "").replace(' ', "")[:-5]
-                elif repost_link:
-                    repost_content = ''.join(tweet_node.xpath(
-                        './/div[@class="card-feed"]/div[@class="content"]'
-                        '/p[@node-type="feed_list_content"]//text()')).replace(
-                        '\n', "").replace('\r', "").replace(' ', "")
-                    raw_content = ''.join(tweet_node.xpath(
-                        './/div[@node-type="feed_list_forwardContent"]'
-                        '/p[@node-type="feed_list_content"]//text()')).replace(
-                        '\n', "").replace('\r', "").replace(' ', "")[:-5]
-                    tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'
-                else:
-                    tweet_item['content'] = ''.join(tweet_node.xpath(
-                        './/div[@class="content"]/p[@node-type="feed_list_content"]//text()')).replace(
-                        '\n', "").replace('\r', "").replace(' ', "")  # 微博内容
-                yield tweet_item
-        except Exception as e:
-            print('解析微博信息出错啦:', e)
+                            './/div[@class="content"]/p[@node-type="feed_list_content"]//text()')).replace(
+                            '\n', "").replace('\r', "").replace(' ', "")  # 微博内容
+                    yield tweet_item
+            except Exception as e:
+                print('解析微博信息出错啦:', e)
