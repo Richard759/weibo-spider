@@ -52,11 +52,11 @@ class CsvFilePipeline(object):
             self.insert_item(self.Relationships, item)
         elif spider.name == 'follower_spider':
             self.insert_item(self.Relationships, item)
-        elif spider.name == 'user_spider' or 'user_brief_spider':
+        elif spider.name == 'user_spider':
             self.insert_item(self.Users, item)
         elif spider.name == 'user_brief_spider':
             self.insert_item(self.UserBrief, item)
-        elif spider.name == 'tweet_spider':
+        elif spider.name == 'tweet_spider' or spider.name == 'user_brief_spider':
             self.insert_item(self.Tweets, item)
         elif spider.name == 'repost_spider':
             self.insert_item(self.Reposts, item)

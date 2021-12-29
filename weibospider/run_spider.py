@@ -17,6 +17,7 @@ from spiders.user import UserSpider
 from spiders.fan import FanSpider
 from spiders.repost import RepostSpider
 from spiders.user_brief import UserBriefSpider
+from spiders.user_tweet import UserTweetSpider
 
 mode = sys.argv[1]
 
@@ -31,7 +32,8 @@ if __name__ == '__main__':
         'tweet': TweetSpider,
         'user': UserSpider,
         'repost': RepostSpider,
-        'user_brief': UserBriefSpider
+        'user_brief': UserBriefSpider,
+        'user_tweet': UserTweetSpider
     }
     process.crawl(mode_to_spider[mode])
     # the script will block here until the crawling is finished

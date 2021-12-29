@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-File Description: 
-Author: nghuyong
-Mail: nghuyong@163.com
-Created Time: 2020/4/14
-"""
+
 import datetime
 import re
 from lxml import etree
@@ -28,14 +23,14 @@ class TweetSpider(Spider):
             # crawl specific users' tweets in a specific date
             # === change the following config ===
             user_ids = ['1618051664',  # 头条新闻
-                        '1314608344',  # 新闻晨报
-                        '2656274875',  # 央视新闻
-                        '1496814565',  # 封面新闻
-                        '2028810631',  # 新浪新闻
-                        '5044281310',  # 澎湃新闻
-                        '1784473157',  # 中国新闻网
-                        '1644114654',  # 新京报
-                        '2615417307',  # 凤凰网
+                        # '1314608344',  # 新闻晨报
+                        # '2656274875',  # 央视新闻
+                        # '1496814565',  # 封面新闻
+                        # '2028810631',  # 新浪新闻
+                        # '5044281310',  # 澎湃新闻
+                        # '1784473157',  # 中国新闻网
+                        # '1644114654',  # 新京报
+                        # '2615417307',  # 凤凰网
                         '2810373291']  # 新华网
             # === change the above config ===
             start_date = datetime.datetime.strptime("2017-01-01", '%Y-%m-%d')
@@ -88,8 +83,8 @@ class TweetSpider(Spider):
             return url_set
 
         # select urls generation by the following code
-        urls = init_url_by_keywords()
-        # urls = init_url_by_user_id()
+        # urls = init_url_by_keywords()
+        urls = init_url_by_user_id()
         for url in urls:
             yield Request(url, callback=self.parse)
 
