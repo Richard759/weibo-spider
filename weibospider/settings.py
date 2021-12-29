@@ -62,6 +62,10 @@ with open('user_ids.txt', 'r', encoding='utf-8') as f:
     for line in f.readlines():
         USER_ID.append(line.strip())
 
+USER_TWEET_ID = []
+with open('user_tweet_ids.txt', 'r', encoding='utf-8') as f:
+    for line in f.readlines():
+        USER_TWEET_ID.append(line.strip())
 # 不用修改的设置
 
 COOKIES_ENABLED = False

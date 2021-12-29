@@ -7,6 +7,7 @@ import time
 from items import TweetItem
 from urllib.parse import unquote
 from spiders.utils import time_fix, extract_weibo_content
+from settings import USER_TWEET_ID
 
 
 class UserTweetSpider(Spider):
@@ -26,16 +27,17 @@ class UserTweetSpider(Spider):
         def init_url_by_user_id_and_date():
             # crawl specific users' tweets in a specific date
             # === change the following config ===
-            user_ids = ['1618051664',  # 头条新闻
-                        # '1314608344',  # 新闻晨报
-                        # '2656274875',  # 央视新闻
-                        # '1496814565',  # 封面新闻
-                        # '2028810631',  # 新浪新闻
-                        # '5044281310',  # 澎湃新闻
-                        # '1784473157',  # 中国新闻网
-                        # '1644114654',  # 新京报
-                        # '2615417307',  # 凤凰网
-                        '2810373291']  # 新华网
+            # user_ids = ['1618051664',  # 头条新闻
+            #             # '1314608344',  # 新闻晨报
+            #             # '2656274875',  # 央视新闻
+            #             # '1496814565',  # 封面新闻
+            #             # '2028810631',  # 新浪新闻
+            #             # '5044281310',  # 澎湃新闻
+            #             # '1784473157',  # 中国新闻网
+            #             # '1644114654',  # 新京报
+            #             # '2615417307',  # 凤凰网
+            #             '2810373291']  # 新华网
+            user_ids = USER_TWEET_ID
             start_date = datetime.datetime.strptime("2020-01-01", '%Y-%m-%d')
             end_date = datetime.datetime.strptime("2020-12-31", '%Y-%m-%d')
             # === change the above config ===

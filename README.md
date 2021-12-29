@@ -153,12 +153,11 @@ python run_spider.py comment
 具体需要爬取的微博id在/weibospider/tweet_ids.txt中进行添加
 
 ### 抓取用户的微博
-在`./weibospider/spiders/tweet.py`中`start_requests`,urls选择`init_url_by_user_id()`
 ```bash
-python run_spider.py tweet
+python run_spider.py user_tweet
 ```
 ![](./images/tweet-user-spider.png)
-
+具体需要爬取的微博id在/weibospider/user_tweet_ids.txt中进行添加
 
 ### 抓取包含关键词的微博
 在`./weibospider/spiders/tweet.py`中`start_requests`,urls选择`init_url_by_keywords()`
