@@ -27,7 +27,7 @@ class CsvFilePipeline(object):
             fieldnames_r = ['_id', 'fan_id', 'followed_id', 'crawl_time']
             self.Relationships = csv.DictWriter(f_r, fieldnames=fieldnames_r)
             self.Relationships.writeheader()
-        elif mode == 'tweet':
+        elif mode == 'tweet' or mode == 'user_tweet':
             f_t = open("Tweets.csv", 'w', encoding='utf-8-sig', newline='')
             fieldnames_t = ["_id", "crawl_time", "content", "created_at", "user_id", "user_name", "image_url",
                             "like_num", "comment_num", "location_map_info", "origin_weibo", "repost_num", "tool",
@@ -56,7 +56,7 @@ class CsvFilePipeline(object):
             self.insert_item(self.Users, item)
         elif spider.name == 'user_brief_spider':
             self.insert_item(self.UserBrief, item)
-        elif spider.name == 'tweet_spider' or spider.name == 'user_brief_spider':
+        elif spider.name == 'tweet_spider' or spider.name == 'user_tweet_spider':
             self.insert_item(self.Tweets, item)
         elif spider.name == 'repost_spider':
             self.insert_item(self.Reposts, item)
