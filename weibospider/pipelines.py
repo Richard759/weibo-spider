@@ -12,6 +12,11 @@ class CsvFilePipeline(object):
                             'sentiment', 'vip_level', 'authentication', 'labels', 'crawl_time']
             self.Users = csv.DictWriter(f_u, fieldnames=fieldnames_u)
             self.Users.writeheader()
+        elif mode == 'user_brief':
+            f_u = open("UsersBrief.csv", 'w', encoding='utf-8-sig', newline='')
+            fieldnames_u = ['_id', 'tweets_num', 'follows_num', 'fans_num', 'crawl_time']
+            self.UserBrief = csv.DictWriter(f_u, fieldnames=fieldnames_u)
+            self.UserBrief.writeheader()
         elif mode == 'fan':
             f_r = open("fans.csv", 'w', encoding='utf-8-sig', newline='')
             fieldnames_r = ['_id', 'fan_id', 'followed_id', 'crawl_time']
@@ -47,8 +52,10 @@ class CsvFilePipeline(object):
             self.insert_item(self.Relationships, item)
         elif spider.name == 'follower_spider':
             self.insert_item(self.Relationships, item)
-        elif spider.name == 'user_spider':
+        elif spider.name == 'user_spider' or 'user_brief_spider':
             self.insert_item(self.Users, item)
+        elif spider.name == 'user_brief_spider':
+            self.insert_item(self.UserBrief, item)
         elif spider.name == 'tweet_spider':
             self.insert_item(self.Tweets, item)
         elif spider.name == 'repost_spider':

@@ -41,6 +41,14 @@ class UserItem(Item):
     crawl_time = Field()  # 抓取时间戳
 
 
+class UserBriefItem(Item):
+    _id = Field()  # 用户ID
+    tweets_num = Field()  # 微博数
+    follows_num = Field()  # 关注数
+    fans_num = Field()  # 粉丝数
+    crawl_time = Field()  # 抓取时间戳
+
+
 class RelationshipItem(Item):
     """ 用户关系，只保留与关注的关系 """
     _id = Field()

@@ -22,11 +22,11 @@ ONLY_HOT = False
 ONLY_ORIGIN = False
 
 # 爬虫时间间隔
-MAX_DELTA = 2
+MAX_DELTA = 10
 
 TWEET_DATE_WINDOW = {
-    'start_date': '2021-12-01',
-    'end_date': '2021-12-04'
+    'start_date': '2017-01-01',
+    'end_date': '2017-03-01'
 }
 
 # fff = ['中华文化', '创意文化', '文化']
@@ -38,7 +38,9 @@ TWEET_DATE_WINDOW = {
 #         TWEET_KEY_WORDS.append(ff + ll)
 
 TWEET_KEY_WORDS = [
-    'blackpink'
+    '丽江打人',
+    '丽江毁容',
+    '丽江抢劫'
 ]
 
 COMMENT_TWEET_ID = []

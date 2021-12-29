@@ -123,7 +123,11 @@ Cookie和user-agent字段替换成自己的
 
 ```
 cd weibospider
+# 完整版
 python run_spider.py user
+
+# 简要版
+python run_spider.py user_brief
 ```
 ![](./images/user-spider.png)
 
