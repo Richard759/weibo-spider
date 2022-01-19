@@ -41,8 +41,8 @@ class CommentSpider(Spider):
                 comment_item = CommentItem()
                 comment_item['weibo_id'] = comment_weibo_id
                 comment_item['content'] = ''.join(
-                    tweet_node.xpath('./div[@class="list_con"]/div[@class="WB_text"]/text()[2]')).replace(
-                    '\n', "").replace('\r', "").replace(' ', "").replace(',', '，')[1:]
+                    tweet_node.xpath('./div[@class="list_con"]/div[@class="WB_text"]//text()')[2:]).replace(
+                    '\n', "").replace('\r', "").replace(' ', "").replace(',', '，').strip()[1:]
                 comment_item['_id'] = tweet_node.xpath('./@comment_id')[0]
                 comment_item['comment_user_id'] = ''.join(tweet_node.xpath('./div[@class="list_con"]'
                                                                            '/div[@class="WB_text"]/a[1]/@usercard'))[3:]

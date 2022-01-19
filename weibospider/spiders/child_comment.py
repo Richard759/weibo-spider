@@ -43,8 +43,8 @@ class ChildCommentSpider(Spider):
                 comment_item['weibo_id'] = comment_weibo_id
                 comment_item['root_comment_id'] = root_weibo_id
                 comment_item['content'] = ''.join(
-                    comment_node.xpath('./div[@class="list_con"]/div[@class="WB_text"]/text()[2]')).replace(
-                    '\n', "").replace('\r', "").replace(' ', "").replace(',', '，')[1:]
+                    comment_node.xpath('./div[@class="list_con"]/div[@class="WB_text"]//text()')[2:]).replace(
+                    '\n', "").replace('\r', "").replace(' ', "").replace(',', '，').strip()[1:]
                 comment_item['_id'] = comment_node.xpath('./@comment_id')[0]
                 comment_item['comment_user_id'] = ''.join(comment_node.xpath('./div[@class="list_con"]'
                                                                              '/div[@class="WB_text"]'
