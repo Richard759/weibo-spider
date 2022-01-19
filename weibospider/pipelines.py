@@ -36,9 +36,16 @@ class CsvFilePipeline(object):
             self.Tweets.writeheader()
         elif mode == 'comment':
             f_c = open("Comments.csv", 'w', encoding='utf-8-sig', newline='')
-            fieldnames_c = ['_id', 'comment_user_id', 'content', 'weibo_id', 'created_at', 'like_num', 'crawl_time']
+            fieldnames_c = ['_id', 'comment_user_id', 'comment_user', 'content', 'weibo_id',
+                            'created_at', 'like_num', 'crawl_time', 'child_url']
             self.Comments = csv.DictWriter(f_c, fieldnames=fieldnames_c)
             self.Comments.writeheader()
+        elif mode == 'child_comment':
+            f_c = open("child_comment.csv", 'w', encoding='utf-8-sig', newline='')
+            fieldnames_c = ['_id', 'comment_user_id', 'comment_user', 'root_comment_id', 'content', 'weibo_id',
+                            'created_at', 'like_num', 'crawl_time']
+            self.ChildComment = csv.DictWriter(f_c, fieldnames=fieldnames_c)
+            self.ChildComment.writeheader()
         elif mode == 'repost':
             f_rp = open("Reposts.csv", 'w', encoding='utf-8-sig', newline='')
             fieldnames_rp = ['_id', 'user_id', 'content', 'weibo_id', 'created_at', 'crawl_time']
@@ -48,6 +55,8 @@ class CsvFilePipeline(object):
     def process_item(self, item, spider):
         if spider.name == 'comment_spider':
             self.insert_item(self.Comments, item)
+        elif spider.name == 'child_comment_spider':
+            self.insert_item(self.ChildComment, item)
         elif spider.name == 'fan_spider':
             self.insert_item(self.Relationships, item)
         elif spider.name == 'follower_spider':

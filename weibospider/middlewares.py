@@ -3,6 +3,7 @@ import time
 from scrapy.http import HtmlResponse
 from selenium.common.exceptions import TimeoutException
 
+
 class IPProxyMiddleware(object):
 
     def fetch_proxy(self):

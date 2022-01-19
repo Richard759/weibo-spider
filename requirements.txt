@@ -1,5 +1,5 @@
 Scrapy==1.5.1
-lxml~=4.6.2
-pandas~=1.0.0
-
+lxml~=4.7.1
+pandas~=1.1.5
+pyexecjs~=1.5.1
 selenium~=3.141.0

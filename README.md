@@ -152,6 +152,14 @@ python run_spider.py comment
 ![](./images/comment-spider.png)
 具体需要爬取的微博id在/weibospider/tweet_ids.txt中进行添加
 
+### 抓取评论的子评论
+
+将需要获取子评论的部分url（由评论爬虫获得）存储在comment_urls.txt中
+
+```python
+python run_spider.py child_comment
+```
+
 ### 抓取用户的微博
 ```bash
 python run_spider.py user_tweet

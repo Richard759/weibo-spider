@@ -102,12 +102,12 @@ class TweetSpider(Spider):
                     start_string = start_date + '-0'
                     end_string = start_date + '-11'
                     new_url_1 = re.sub(r'(custom):.*?(:.*?&Refer=g)', r'\1:%s\2' % start_string, response.url)
-                    new_url_1 = re.sub(r'(custom:.*?):.*?(&Refer=g)',  r'\1:%s\2' % end_string, new_url_1)
+                    new_url_1 = re.sub(r'(custom:.*?):.*?(&Refer=g)', r'\1:%s\2' % end_string, new_url_1)
                     yield Request(new_url_1, callback=self.parse)
                     start_string = start_date + '-12'
                     end_string = start_date + '-23'
                     new_url_2 = re.sub(r'(custom):.*?(:.*?&Refer=g)', r'\1:%s\2' % start_string, response.url)
-                    new_url_2 = re.sub(r'(custom:.*?):.*?(&Refer=g)',  r'\1:%s\2' % end_string, new_url_2)
+                    new_url_2 = re.sub(r'(custom:.*?):.*?(&Refer=g)', r'\1:%s\2' % end_string, new_url_2)
                     yield Request(new_url_2, callback=self.parse)
                 else:
                     date_start = datetime.datetime.strptime(start_date, '%Y-%m-%d')
@@ -160,7 +160,7 @@ class TweetSpider(Spider):
                         tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/@href'))  # 微博URL
                     user_name = ''.join(tweet_node.xpath('.//div[@class="info"]/div/a[@class="name"]/text()'))
                     tweet_item['weibo_url'] = weibo_url
-                    tweet_item['user_name'] = user_name
+                    tweet_item['user_name'] = user_name.replace(',', '，')
                     try:
                         tweet_item['_id'] = re.findall(r'//weibo.com/\d+/(.*)\?refer_flag=.*', weibo_url)[0]  # 微博id
                         tweet_item['user_id'] = re.findall(r'//weibo.com/(\d+)/.*\?refer_flag=.*', weibo_url)[0]
@@ -181,7 +181,7 @@ class TweetSpider(Spider):
                     if re.match(r'^20..年..月..日.*', info):
                         time_index = f'{info[0:4]}-{info[5:7]}-{info[8:10]} {info[11:]}'
                     elif re.match(r'^..月..日.*', info):
-                        time_index = f'2021-{info[0:2]}-{info[3:5]} {info[6:]}'
+                        time_index = f'{datetime.date.today().year}-{info[0:2]}-{info[3:5]} {info[6:]}'
                     elif re.match(r'^今天.*', info):
                         time_index = f'{datetime.date.today()} {info[2:]}'
                     else:
@@ -250,11 +250,11 @@ class TweetSpider(Spider):
                                     './/div[@node-type="feed_list_forwardContent"]'
                                     '/p[@node-type="feed_list_content"]//text()')).replace(
                                     '\n', "").replace('\r', "").replace(' ', "")
-                            tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'
+                            tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'.replace(',', '，')
                         else:
                             tweet_item['content'] = ''.join(tweet_node.xpath(
                                 './/div[@class="content"]/p[@node-type="feed_list_content_full"]//text()')).replace(
-                                '\n', "").replace('\r', "").replace(' ', "")[:-5]
+                                '\n', "").replace('\r', "").replace(' ', "")[:-5].replace(',', '，')
                     elif repost_link:
                         repost_content = ''.join(tweet_node.xpath(
                             './/div[@class="card-feed"]/div[@class="content"]'
@@ -264,11 +264,11 @@ class TweetSpider(Spider):
                             './/div[@node-type="feed_list_forwardContent"]'
                             '/p[@node-type="feed_list_content"]//text()')).replace(
                             '\n', "").replace('\r', "").replace(' ', "")[:-5]
-                        tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'
+                        tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'.replace(',', '，')
                     else:
                         tweet_item['content'] = ''.join(tweet_node.xpath(
                             './/div[@class="content"]/p[@node-type="feed_list_content"]//text()')).replace(
-                            '\n', "").replace('\r', "").replace(' ', "")  # 微博内容
+                            '\n', "").replace('\r', "").replace(' ', "").replace(',', '，')  # 微博内容
                     yield tweet_item
             except Exception as e:
                 print('解析微博信息出错啦:', e)

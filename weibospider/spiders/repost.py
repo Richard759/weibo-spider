@@ -48,7 +48,7 @@ class RepostSpider(Spider):
             repo_item['weibo_id'] = response.url.split('/')[-1].split('?')[0]
             repo_item['user_id'] = re.search(r'/u/(\d+)', repo_user_url[0]).group(1)
             content = extract_repost_content(etree.tostring(repo_node, encoding='unicode'))
-            repo_item['content'] = content.split(':', maxsplit=1)[1]
+            repo_item['content'] = content.split(':', maxsplit=1)[1].replace(',', '，')
             created_at_info = repo_node.xpath('.//span[@class="ct"]/text()')[0].split('\xa0')
             repo_item['created_at'] = time_fix((created_at_info[0] + created_at_info[1]))
             yield repo_item
