@@ -3,6 +3,7 @@
 import re
 import datetime
 import execjs
+import math
 
 
 def time_fix(time_string):
@@ -95,86 +96,56 @@ def extract_repost_content(repost_html):
     return s
 
 
-jspython = '''str62keys = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-/**
-* 10进制值转换为62进制
-* @param {String} int10 10进制值
-* @return {String} 62进制值
-*/
-function int10to62(int10) {
-    var s62 = '';
-    var r = 0;
-    while (int10 != 0) {
-            r = int10 % 62;
-            s62 = this.str62keys.charAt(r) + s62;
-            int10 = Math.floor(int10 / 62);
-    }
-    return s62;
-}
-/**
-* 62进制值转换为10进制
-* @param {String} str62 62进制值
-* @return {String} 10进制值
-*/
-function str62to10(str62) {
-    var i10 = 0;
-    for (var i = 0; i < str62.length; i++) {
-            var n = str62.length - i - 1;
-            var s = str62.substr(i, 1);  // str62[i]; 字符串用数组方式获取，IE下不支持为“undefined”
-            i10 += parseInt(str62keys.indexOf(s)) * Math.pow(62, n);
-    }
-    return i10;
-}
-/**
-* id转换为mid
-* @param {String} id 微博id，如 "201110410216293360"
-* @return {String} 微博mid，如 "wr4mOFqpbO"
-*/
-function id2mid(id) {
-    if (typeof (id) != 'string') {
-            return false; // id数值较大，必须为字符串！
-    }
-    var mid = '';
-    for (var i = id.length - 7; i > -7; i = i - 7) //从最后往前以7字节为一组读取mid
-    {
-            var offset1 = i < 0 ? 0 : i;
-            var offset2 = i + 7;
-            var num = id.substring(offset1, offset2);
-            num = int10to62(num);
-            mid = num + mid;
-    }
-    return mid;
-}
-/**
-* mid转换为id
-* @param {String} mid 微博mid，如 "wr4mOFqpbO"
-* @return {String} 微博id，如 "201110410216293360"
-*/
-function mid2id(mid) {
-    var id = '';
-    for (var i = mid.length - 4; i > -4; i = i - 4) //从最后往前以4字节为一组读取mid字符
-    {
-            var offset1 = i < 0 ? 0 : i;
-            var len = i < 0 ? parseInt(mid.length % 4) : 4;
-            var str = mid.substr(offset1, len);
-            str = str62to10(str).toString();
-            if (offset1 > 0) //若不是第一组，则不足7位补0
-            {
-                    while (str.length < 7) {
-                            str = '0' + str;
-                    }
-            }
-            id = str + id;
-    }
-    return id;
-}'''
+str62keys = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-ctx = execjs.compile(jspython)  # 编译 js
+
+def str62to10(str62):
+    i10 = 0
+    for i in range(len(str62)):
+        n = len(str62) - i - 1
+        s = str62[i]
+        i10 += str62keys.index(s) * math.pow(62, n)
+    return int(i10)
+
+
+def int10to62(int10):
+    s62 = ''
+    while int10 != 0:
+        r = int10 % 62
+        s62 = str62keys[r] + s62
+        int10 = math.floor(int10 / 62)
+    return s62
 
 
 def mid2id(mid):
-    return ctx.call('mid2id', mid)
+    cid = ''
+    for i in range(len(mid) - 4, -4, -4):
+        if i < 0:
+            offset1 = 0
+        else:
+            offset1 = i
+        if i < 0:
+            mid_len = len(mid) % 4
+        else:
+            mid_len = 4
+        mid_str = mid[offset1:offset1 + mid_len]
+        mid_str = str(str62to10(mid_str))
+        if offset1 > 0:
+            while len(mid_str) < 7:
+                mid_str = '0' + mid_str
+        cid = mid_str + cid
+    return cid
 
 
 def id2mid(_id):
-    return ctx.call('id2mid', _id)
+    mid = ''
+    for i in range(len(_id) - 7, -7, - 7):
+        if i < 0:
+            offset1 = 0
+        else:
+            offset1 = i
+        offset2 = i + 7
+        num = _id[offset1:offset2]
+        num = int10to62(int(num))
+        mid = num + mid
+    return mid
