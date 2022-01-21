@@ -16,6 +16,7 @@ from items import CommentItem
 from spiders.utils import id2mid, mid2id
 from settings import COMMENT_TWEET_ID
 import datetime
+from spiders.utils import get_create_time
 import json
 
 
@@ -50,15 +51,7 @@ class CommentSpider(Spider):
                                                                         '/div[@class="WB_text"]/a[1]/text()'))
                 info = ''.join(tweet_node.xpath('./div[@class="list_con"]/div[@class="WB_func clearfix"]'
                                                 '/div[@class="WB_from S_txt2"]/text()'))
-                if re.match(r'^20..年..月..日.*', info):
-                    time_index = f'{info[0:4]}-{info[5:7]}-{info[8:10]} {info[11:]}'
-                elif re.match(r'^..月..日.*', info):
-                    time_index = f'{datetime.date.today().year}-{info[0:2]}-{info[3:5]} {info[6:]}'
-                elif re.match(r'^今天.*', info):
-                    time_index = f'{datetime.date.today()} {info[2:]}'
-                else:
-                    time_index = info
-                comment_item['created_at'] = time_index
+                comment_item['created_at'] = get_create_time(info)
                 like_num = tweet_node.xpath('.//a[@action-type="fl_like"]'
                                             '/span[@node-type="like_status"]/em[2]/text()')[0]
                 if like_num == '赞':

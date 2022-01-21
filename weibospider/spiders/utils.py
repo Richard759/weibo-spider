@@ -149,3 +149,18 @@ def id2mid(_id):
         num = int10to62(int(num))
         mid = num + mid
     return mid
+
+
+def get_create_time(str_time):
+    if re.match(r'^20..年..月..日.*', str_time):
+        time_index = f'{str_time[0:4]}-{str_time[5:7]}-{str_time[8:10]} {str_time[11:]}'
+    elif re.match(r'^..月..日.*', str_time):
+        time_index = f'{datetime.date.today().year}-{str_time[0:2]}-{str_time[3:5]} {str_time[6:]}'
+    elif re.match(r'^今天.*', str_time):
+        time_index = f'{datetime.date.today()} {str_time[2:]}'
+    elif len(re.findall(r'(.*)-(.*)-(.*) (.*)', str_time)) > 0:
+        (year, month, day, mh) = re.findall(r'(.*)-(.*)-(.*) (.*)', str_time)[0]
+        time_index = '%s-%02d-%02d %s' % (year, int(month), int(day), mh)
+    else:
+        time_index = str_time
+    return time_index

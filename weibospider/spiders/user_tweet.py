@@ -16,14 +16,6 @@ class UserTweetSpider(Spider):
 
     def start_requests(self):
 
-        def init_url_by_user_id():
-            # crawl tweets post by users
-            # === change the following config ===
-            user_ids = ['1087770692', '1699432410', '1266321801']
-            # === change the above config ===
-            urls = [f'{self.base_url}/{user_id}/profile?page=1' for user_id in user_ids]
-            return urls
-
         def init_url_by_user_id_and_date():
             # crawl specific users' tweets in a specific date
             # === change the following config ===
@@ -38,10 +30,10 @@ class UserTweetSpider(Spider):
             #             # '2615417307',  # 凤凰网
             #             '2810373291']  # 新华网
             user_ids = USER_TWEET_ID
-            start_date = datetime.datetime.strptime("2020-01-01", '%Y-%m-%d')
-            end_date = datetime.datetime.strptime("2020-12-31", '%Y-%m-%d')
+            start_date = datetime.datetime.strptime("2021-12-01", '%Y-%m-%d')
+            end_date = datetime.datetime.strptime("2021-12-31", '%Y-%m-%d')
             # === change the above config ===
-            time_spread = datetime.timedelta(days=20)
+            time_spread = datetime.timedelta(days=10)
             url_format = "https://weibo.cn/{}/profile?hasori=0&haspic=0&starttime={}&endtime={}&advancedfilter=1&page=1"
             urls = []
             while start_date < end_date:

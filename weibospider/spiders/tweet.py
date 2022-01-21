@@ -6,6 +6,7 @@ import re
 from lxml import etree
 from scrapy import Spider
 from scrapy.http import Request
+from spiders.utils import get_create_time
 from settings import TWEET_DATE_WINDOW, TWEET_KEY_WORDS, ONLY_HOT, ONLY_ORIGIN, MAX_DELTA
 from items import TweetItem
 import random
@@ -178,15 +179,7 @@ class TweetSpider(Spider):
                         tweet_item['tool'] = ''.join(tweet_node.xpath(
                             './/div[@class="content"]/p[@class="from"]/a[2]/text()')).replace('\n', "").replace(
                             '\r', "").replace(' ', "")
-                    if re.match(r'^20..年..月..日.*', info):
-                        time_index = f'{info[0:4]}-{info[5:7]}-{info[8:10]} {info[11:]}'
-                    elif re.match(r'^..月..日.*', info):
-                        time_index = f'{datetime.date.today().year}-{info[0:2]}-{info[3:5]} {info[6:]}'
-                    elif re.match(r'^今天.*', info):
-                        time_index = f'{datetime.date.today()} {info[2:]}'
-                    else:
-                        time_index = info
-                    tweet_item['created_at'] = time_index
+                    tweet_item['created_at'] = get_create_time(info)
 
                     try:
                         a_list = tweet_node.xpath('.//p[@class="txt"]/a')
