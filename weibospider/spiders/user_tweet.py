@@ -60,9 +60,24 @@ class UserTweetSpider(Spider):
             if all_page:
                 all_page = all_page.group(1)
                 all_page = int(all_page)
-                for page_num in range(2, all_page + 1):
-                    page_url = response.url.replace('page=1', 'page={}'.format(page_num))
-                    yield Request(page_url, self.parse, dont_filter=True, meta=response.meta)
+                start_date, end_date = re.findall(r'.*starttime=(.*)&endtime=(.*)&.*', response.url)[0]
+                if all_page > 80 and start_date != end_date:
+                    date_start = datetime.datetime.strptime(start_date, '%Y%m%d')
+                    date_end = datetime.datetime.strptime(end_date, '%Y%m%d')
+                    day_delta = (date_end - date_start).days + 1
+                    new_date = date_end - datetime.timedelta(days=int(day_delta / 2))
+                    day_string = new_date.strftime("%Y%m%d")
+                    new_url_1 = re.sub(r'(starttime=.*&endtime)=.*(&)', r'\1=%s\2' % day_string, response.url)
+                    print(new_url_1)
+                    yield Request(new_url_1, callback=self.parse)
+                    day_string = (new_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+                    new_url_2 = re.sub(r'(starttime)=.*(&endtime=.*&)', r'\1=%s\2' % day_string, response.url)
+                    yield Request(new_url_2, callback=self.parse)
+                    return
+                else:
+                    for page_num in range(2, all_page + 1):
+                        page_url = response.url.replace('page=1', 'page={}'.format(page_num))
+                        yield Request(page_url, self.parse, dont_filter=True, meta=response.meta)
 
         tree_node = etree.HTML(response.body)
         tweet_nodes = tree_node.xpath('//div[@class="c" and @id]')
