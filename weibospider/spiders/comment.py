@@ -33,7 +33,7 @@ class CommentSpider(Spider):
             yield Request(base_url, callback=self.parse)
 
     def parse(self, response):
-        time.sleep(random.randint(3, 5))
+        time.sleep(random.randint(10, 15))
         comment_weibo_id = id2mid(re.findall(r'&id=(.*?)&', response.url)[0])
         tree_node = etree.HTML(str(json.loads(response.text)['data']))
         tweet_nodes = tree_node.xpath('.//div[@node-type = "root_comment"]')

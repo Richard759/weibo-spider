@@ -2,7 +2,6 @@
 # encoding: utf-8
 import re
 import datetime
-import execjs
 import math
 
 
@@ -147,6 +146,9 @@ def id2mid(_id):
         offset2 = i + 7
         num = _id[offset1:offset2]
         num = int10to62(int(num))
+        if offset1 > 0:
+            while len(num) < 4:
+                num = '0' + num
         mid = num + mid
     return mid
 
@@ -158,8 +160,8 @@ def get_create_time(str_time):
         time_index = f'{datetime.date.today().year}-{str_time[0:2]}-{str_time[3:5]} {str_time[6:]}'
     elif re.match(r'^今天.*', str_time):
         time_index = f'{datetime.date.today()} {str_time[2:]}'
-    elif len(re.findall(r'(.*)-(.*)-(.*) (.*)', str_time)) > 0:
-        (year, month, day, mh) = re.findall(r'(.*)-(.*)-(.*) (.*)', str_time)[0]
+    elif len(re.findall(r'(.*?)-(.*?)-(.*?) (.*)', str_time)) > 0:
+        (year, month, day, mh) = re.findall(r'(.*?)-(.*?)-(.*?) (.*)', str_time)[0]
         time_index = '%s-%02d-%02d %s' % (year, int(month), int(day), mh)
     else:
         time_index = str_time

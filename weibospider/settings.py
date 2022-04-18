@@ -11,6 +11,16 @@ HTTPERROR_ALLOWED_CODES = [403]
 # change cookie to yours
 
 # 选择用weibo.cn/s.weibo.com的cookie
+# DEFAULT_REQUEST_HEADERS = {
+#     "Connection": "keep-alive",
+#     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36 Edg/97.0.1072.55",
+#     "Sec-Fetch-Site": "same-site",
+#     "Sec-Fetch-Mode": "no-cors",
+#     "Sec-Fetch-Dest": "script",
+#     'Accept': '*/*',
+#     'Cookie': 'SINAGLOBAL=2984020340573.4653.1615966504509; UOR=,,weibo.cn; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh5h_i4eSgoD7jFisEd1k8Y5JpX5KMhUgL.FoqfSo.feKzfSK52dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcSKq4SK2ESK-7; wb_view_log_6569512550=1920*10801.100000023841858; ALF=1674649473; SSOLoginState=1643113473; SCF=At9eOLw9o69sap1_tTXMdkUPPcB7_jux_87EDPewfgITa_hYsh-s2mNLOtwk_5XbL4PGUWVXlZdr0Da8BNuklh4.; SUB=_2A25M65xSDeRhGeBL7VsU8SzJzjyIHXVvgIqarDV8PUNbmtB-LU6tkW9NRvFrV3mX3WcuCd-k1a1BbY7HNFQ7Y1Ic; wvr=6; _s_tentry=-; Apache=5697922336984.016.1643113495530; ULV=1643113495548:68:9:3:5697922336984.016.1643113495530:1643099223245; webim_unReadCount=%7B%22time%22%3A1643115574222%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A35%2C%22msgbox%22%3A0%7D'}
+
+
 DEFAULT_REQUEST_HEADERS = {
     "Connection": "keep-alive",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36 Edg/97.0.1072.55",
@@ -18,8 +28,9 @@ DEFAULT_REQUEST_HEADERS = {
     "Sec-Fetch-Mode": "no-cors",
     "Sec-Fetch-Dest": "script",
     'Accept': '*/*',
-    'Cookie': 'SINAGLOBAL=2984020340573.4653.1615966504509; UOR=,,weibo.cn; wvr=6; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh5h_i4eSgoD7jFisEd1k8Y5JpX5KMhUgL.FoqfSo.feKzfSK52dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcSKq4SK2ESK-7; wb_view_log_6569512550=1920*10801.100000023841858; SCF=At9eOLw9o69sap1_tTXMdkUPPcB7_jux_87EDPewfgITTlao890Q9m1Xx-Nh8nDPBmebSh_dNvMv2-JW5J1oPUQ.; SUB=_2A25M7j8tDeRhGeBL7VsU8SzJzjyIHXVvmhflrDV8PUNbmtAKLVb3kW9NRvFrVxUmsszoCALQC7V4YF8idrp5y50Z; ALF=1674281725; SSOLoginState=1642745725; _s_tentry=-; Apache=2857020912044.57.1642745787021; ULV=1642745787055:65:6:3:2857020912044.57.1642745787021:1642562219614; webim_unReadCount=%7B%22time%22%3A1642745906669%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A34%2C%22msgbox%22%3A0%7D'}
-
+    'Cookie': '_T_WM=ab817248f3dde2d90fb1482a7a23c658; SCF=At9eOLw9o69sap1_tTXMdkUPPcB7_jux_87EDPewfgITz8yqvBrMYLDcRH7sFJlwehzXob6U1Up8wUJW8VA5Iv4.; SUB=_2A25PWXBqDeRhGeBL7VsU8SzJzjyIHXVsohAirDV6PUJbktAfLUjVkW1NRvFrV253l-z0iS8aVuVljTIgY3KTacUV; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh5h_i4eSgoD7jFisEd1k8Y5JpX5K-hUgL.FoqfSo.feKzfSK52dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcSKq4SK2ESK-7; SSOLoginState=1650262074; ALF=1652854074'
+    #'Cookie': 'SINAGLOBAL=2984020340573.4653.1615966504509; wvr=6; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh5h_i4eSgoD7jFisEd1k8Y5JpX5KMhUgL.FoqfSo.feKzfSK52dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcSKq4SK2ESK-7; ALF=1681696023; SSOLoginState=1650160024; SCF=At9eOLw9o69sap1_tTXMdkUPPcB7_jux_87EDPewfgITZyISvfU5JYxHLAGF_TWhMQYe7aEVDr97d-1IYxZctSo.; SUB=_2A25PXwHIDeRhGeBL7VsU8SzJzjyIHXVsLXQArDV8PUNbmtB-LVrZkW9NRvFrV5lnlXPVRJSET9OMbWZIY0zFkl1f; _s_tentry=login.sina.com.cn; UOR=,,login.sina.com.cn; Apache=1909705972878.375.1650160026067; ULV=1650160026081:92:6:1:1909705972878.375.1650160026067:1650057335876; WBStorage=4d96c54e|undefined; webim_unReadCount=%7B%22time%22%3A1650199883060%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A26%2C%22msgbox%22%3A0%7D'
+}
 # 原创微博和热门微博同时只能满足一个
 ONLY_HOT = False
 ONLY_ORIGIN = False
@@ -28,8 +39,8 @@ ONLY_ORIGIN = False
 MAX_DELTA = 10
 
 TWEET_DATE_WINDOW = {
-    'start_date': '2017-01-01',
-    'end_date': '2017-03-01'
+    'start_date': '2022-04-13',
+    'end_date': '2022-04-17'
 }
 
 # fff = ['中华文化', '创意文化', '文化']
@@ -41,9 +52,7 @@ TWEET_DATE_WINDOW = {
 #         TWEET_KEY_WORDS.append(ff + ll)
 
 TWEET_KEY_WORDS = [
-    '丽江打人',
-    '丽江毁容',
-    '丽江抢劫'
+    'RNG小虎',
 ]
 
 COMMENT_TWEET_ID = []

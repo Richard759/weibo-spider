@@ -20,40 +20,6 @@ class TweetSpider(Spider):
 
     def start_requests(self):
 
-        def init_url_by_user_id():
-            # crawl specific users' tweets in a specific date
-            # === change the following config ===
-            user_ids = ['1618051664',  # 头条新闻
-                        # '1314608344',  # 新闻晨报
-                        # '2656274875',  # 央视新闻
-                        # '1496814565',  # 封面新闻
-                        # '2028810631',  # 新浪新闻
-                        # '5044281310',  # 澎湃新闻
-                        # '1784473157',  # 中国新闻网
-                        # '1644114654',  # 新京报
-                        # '2615417307',  # 凤凰网
-                        '2810373291']  # 新华网
-            # === change the above config ===
-            start_date = datetime.datetime.strptime("2017-01-01", '%Y-%m-%d')
-            end_date = datetime.datetime.strptime("2021-11-22", '%Y-%m-%d')
-            # === change the above config ===
-            time_spread = datetime.timedelta(days=5)
-            # url_format_hash = ("https://weibo.cn/{}/profile?hasori=0&haspic=0&"
-            #                    "starttime={}&endtime={}&advancedfilter=1&page=1")
-
-            url_format = "https://weibo.cn/{}/profile?hasori=0&haspic=0&starttime={}&endtime={}&advancedfilter=1&page=1"
-            urls = []
-            while start_date < end_date:
-                for user_id in user_ids:
-                    start_date_string = start_date.strftime("%Y%m%d")
-                    tmp_end_date = start_date + time_spread
-                    if tmp_end_date >= end_date:
-                        tmp_end_date = end_date
-                    end_date_string = tmp_end_date.strftime("%Y%m%d")
-                    urls.append(url_format.format(user_id, start_date_string, end_date_string))
-                start_date = start_date + time_spread
-            return urls
-
         def init_url_by_keywords():
             # crawl tweets include keywords in a period, you can change the following keywords and date
             keywords = TWEET_KEY_WORDS  # 按话题找微博，需要设置起止时间
@@ -152,9 +118,13 @@ class TweetSpider(Spider):
                     tweet_item = TweetItem()
                     tweet_item['crawl_time'] = int(time.time())
                     original = tweet_node.xpath('.//div[@class="func"]/p[@class="from"]/a[1]/@href')  # 是否原创
-                    # print(original)
-                    # df = pd.read_csv('weiboid.csv', encoding='utf-8-sig')
-                    # weibo_id_list = df['weibo_id'].tolist()
+                    tweet_item['image_count'] = len(tweet_node.xpath('.//ul/li/img/@src'))
+                    tweet_item['image_url'] = '^'.join(tweet_node.xpath('.//ul/li/img/@src'))
+                    tweet_item['repost_image_url'] = '^'.join(
+                        tweet_node.xpath('.//div[@class="card-feed"]/div[@class="content"]'
+                                         '/p[@node-type="feed_list_content"]/a[contains(text(),"查看图片")]/@href'))
+                    tweet_item['video_url'] = ''.join(tweet_node.xpath(
+                        './/div[@class="wbpv-contextmenu-address"]//text()')).strip()
                     if original:
                         tweet_item['origin_weibo'] = original[0]
                     weibo_url = ''.join(

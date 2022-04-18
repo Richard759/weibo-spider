@@ -4,10 +4,11 @@ from lxml import etree
 from scrapy import Spider
 from scrapy.http import Request
 import time
+import random
 from items import TweetItem
 from urllib.parse import unquote
 from spiders.utils import time_fix, extract_weibo_content
-from settings import USER_TWEET_ID
+from settings import USER_TWEET_ID, TWEET_DATE_WINDOW
 
 
 class UserTweetSpider(Spider):
@@ -17,21 +18,9 @@ class UserTweetSpider(Spider):
     def start_requests(self):
 
         def init_url_by_user_id_and_date():
-            # crawl specific users' tweets in a specific date
-            # === change the following config ===
-            # user_ids = ['1618051664',  # 头条新闻
-            #             # '1314608344',  # 新闻晨报
-            #             # '2656274875',  # 央视新闻
-            #             # '1496814565',  # 封面新闻
-            #             # '2028810631',  # 新浪新闻
-            #             # '5044281310',  # 澎湃新闻
-            #             # '1784473157',  # 中国新闻网
-            #             # '1644114654',  # 新京报
-            #             # '2615417307',  # 凤凰网
-            #             '2810373291']  # 新华网
             user_ids = USER_TWEET_ID
-            start_date = datetime.datetime.strptime("2021-12-01", '%Y-%m-%d')
-            end_date = datetime.datetime.strptime("2021-12-31", '%Y-%m-%d')
+            start_date = datetime.datetime.strptime(TWEET_DATE_WINDOW["start_date"], '%Y-%m-%d')
+            end_date = datetime.datetime.strptime(TWEET_DATE_WINDOW["end_date"], '%Y-%m-%d')
             # === change the above config ===
             time_spread = datetime.timedelta(days=10)
             url_format = "https://weibo.cn/{}/profile?hasori=0&haspic=0&starttime={}&endtime={}&advancedfilter=1&page=1"
@@ -55,23 +44,26 @@ class UserTweetSpider(Spider):
             yield Request(url, callback=self.parse)
 
     def parse(self, response):
+        time.sleep(random.uniform(3, 5))
         if response.url.endswith('page=1'):
             all_page = re.search(r'/>&nbsp;1/(\d+)页</div>', response.text)
             if all_page:
                 all_page = all_page.group(1)
                 all_page = int(all_page)
-                start_date, end_date = re.findall(r'.*starttime=(.*)&endtime=(.*)&.*', response.url)[0]
+                start_date, end_date = re.findall(r'.*starttime=(.*)&endtime=(.*)&advancedfilter.*', response.url)[0]
                 if all_page > 80 and start_date != end_date:
                     date_start = datetime.datetime.strptime(start_date, '%Y%m%d')
                     date_end = datetime.datetime.strptime(end_date, '%Y%m%d')
                     day_delta = (date_end - date_start).days + 1
                     new_date = date_end - datetime.timedelta(days=int(day_delta / 2))
                     day_string = new_date.strftime("%Y%m%d")
-                    new_url_1 = re.sub(r'(starttime=.*&endtime)=.*(&)', r'\1=%s\2' % day_string, response.url)
-                    print(new_url_1)
+                    new_url_1 = re.sub(r'(starttime=.*&endtime)=.*(&advancedfilter)', r'\1=%s\2' % day_string,
+                                       response.url)
+                    # print(new_url_1)
                     yield Request(new_url_1, callback=self.parse)
                     day_string = (new_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-                    new_url_2 = re.sub(r'(starttime)=.*(&endtime=.*&)', r'\1=%s\2' % day_string, response.url)
+                    new_url_2 = re.sub(r'(starttime)=.*(&endtime=.*&advancedfilter)', r'\1=%s\2' % day_string,
+                                       response.url)
                     yield Request(new_url_2, callback=self.parse)
                     return
                 else:
@@ -84,6 +76,16 @@ class UserTweetSpider(Spider):
         for tweet_node in tweet_nodes:
             try:
                 tweet_item = TweetItem()
+                if response.url.endswith('page=1'):
+                    tweet_item['user_name'] = ''.join(
+                        tree_node.xpath('.//div[@class="ut"]/span[@class="ctt"][1]/text()[1]'))
+                else:
+                    name_text = ''.join(tree_node.xpath('.//div[@class="ut"]/text()'))
+                    user_name = ''.join(re.findall(r'(.*)的微博', name_text))
+                    if user_name != '':
+                        tweet_item['user_name'] = user_name
+                    else:
+                        tweet_item['user_name'] = name_text
                 tweet_item['crawl_time'] = int(time.time())
                 tweet_repost_url = tweet_node.xpath('.//a[contains(text(),"转发[")]/@href')[0]
                 user_tweet_id = re.search(r'/repost/(.*?)\?uid=(\d+)', tweet_repost_url)
@@ -109,9 +111,17 @@ class UserTweetSpider(Spider):
                     './/a[contains(text(),"评论[") and not(contains(text(),"原文"))]/text()')[-1]
                 tweet_item['comment_num'] = int(re.search(r'\d+', comment_num).group())
 
-                images = tweet_node.xpath('.//img[@alt="图片"]/@src')
-                if images:
-                    tweet_item['image_url'] = images
+                image_count = ''.join(tweet_node.xpath('.//a[contains(text(),"组图共")]/text()'))
+                if image_count:
+                    tweet_item['image_count'] = re.findall(r'组图共(\d+)张', image_count)[0]
+                    tweet_item['image_url'] = ''.join(tweet_node.xpath('.//a[contains(text(),"组图共")]/@href'))
+                else:
+                    tweet_item['image_url'] = ''.join(tweet_node.xpath('.//img[@alt="图片"]/@src'))
+                    if len(tweet_item['image_url']) > 0:
+                        tweet_item['image_count'] = 1
+
+                tweet_item['repost_image_url'] = ','.join(
+                    tweet_node.xpath('.//div/a[contains(text(),"查看图片")]/@href'))
 
                 videos = tweet_node.xpath('.//a[contains(@href,"https://m.weibo.cn/s/video/show?object_id=")]/@href')
                 if videos:
