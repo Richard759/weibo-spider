@@ -6,7 +6,7 @@ import re
 from lxml import etree
 from scrapy import Spider
 from scrapy.http import Request
-from spiders.utils import get_create_time
+from spiders.utils import get_create_time, extract_new_content
 from settings import TWEET_DATE_WINDOW, TWEET_KEY_WORDS, ONLY_HOT, ONLY_ORIGIN, MAX_DELTA
 from items import TweetItem
 import random
@@ -130,6 +130,8 @@ class TweetSpider(Spider):
                     weibo_url = ''.join(
                         tweet_node.xpath('.//div[@class="content"]/p[@class="from"]/a[1]/@href'))  # 微博URL
                     user_name = ''.join(tweet_node.xpath('.//div[@class="info"]/div/a[@class="name"]/text()'))
+                    tweet_item['user_title'] = ''.join(tweet_node.xpath('.//div[@class="info"]'
+                                                                        '/div/a[@target="_blank"]/i/@class'))
                     tweet_item['weibo_url'] = weibo_url
                     tweet_item['user_name'] = user_name.replace(',', '，')
                     try:
@@ -183,7 +185,6 @@ class TweetSpider(Spider):
                         tweet_item['comment_num'] = comment[2:]
                     else:
                         tweet_item['comment_num'] = '0'
-                    print(like, repost, comment)
                     all_content_link = tweet_node.xpath('.//a[contains(@action-type,"fl_unfold")]')
                     repost_link = tweet_node.xpath('.//div[@node-type="feed_list_forwardContent"]')
                     if all_content_link:
@@ -194,44 +195,53 @@ class TweetSpider(Spider):
                                 './/div[@node-type="feed_list_forwardContent"]/p[@node-type="feed_list_content"]'
                                 '/a[contains(@action-type,"fl_unfold")]')
                             if repost_more:
-                                repost_content = ''.join(tweet_node.xpath(
+                                base_row = tweet_node.xpath(
                                     './/div[@class="card-feed"]/div[@class="content"]'
-                                    '/p[@node-type="feed_list_content_full"]//text()')).replace(
-                                    '\n', "").replace('\r', "").replace(' ', "")[:-5]
+                                    '/p[@node-type="feed_list_content_full"]')
+                                content_raw = ''.join([etree.tostring(_, encoding='unicode') for _ in base_row])
+                                repost_content = extract_new_content(content_raw)
                             else:
-                                repost_content = ''.join(tweet_node.xpath(
+                                base_row = tweet_node.xpath(
                                     './/div[@class="card-feed"]/div[@class="content"]'
-                                    '/p[@node-type="feed_list_content"]//text()')).replace(
-                                    '\n', "").replace('\r', "").replace(' ', "")
+                                    '/p[@node-type="feed_list_content"]')
+                                content_raw = ''.join([etree.tostring(_, encoding='unicode') for _ in base_row])
+                                repost_content = extract_new_content(content_raw)
                             if raw_more:
-                                raw_content = ''.join(tweet_node.xpath(
+                                base_row = tweet_node.xpath(
                                     './/div[@node-type="feed_list_forwardContent"]'
-                                    '/p[@node-type="feed_list_content_full"]//text()')).replace(
-                                    '\n', "").replace('\r', "").replace(' ', "")[:-5]
+                                    '/p[@node-type="feed_list_content_full"]')
+                                content_raw = ''.join([etree.tostring(_, encoding='unicode') for _ in base_row])
+                                raw_content = extract_new_content(content_raw)
                             else:
-                                raw_content = ''.join(tweet_node.xpath(
+                                base_row = tweet_node.xpath(
                                     './/div[@node-type="feed_list_forwardContent"]'
-                                    '/p[@node-type="feed_list_content"]//text()')).replace(
-                                    '\n', "").replace('\r', "").replace(' ', "")
-                            tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'.replace(',', '，')
+                                    '/p[@node-type="feed_list_content"]')
+                                content_raw = ''.join([etree.tostring(_, encoding='unicode') for _ in base_row])
+                                raw_content = extract_new_content(content_raw)
+                            tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'
                         else:
-                            tweet_item['content'] = ''.join(tweet_node.xpath(
-                                './/div[@class="content"]/p[@node-type="feed_list_content_full"]//text()')).replace(
-                                '\n', "").replace('\r', "").replace(' ', "")[:-5].replace(',', '，')
+                            base_row = tweet_node.xpath(
+                                './/div[@class="content"]/p[@node-type="feed_list_content_full"]')
+                            content_raw = ''.join([etree.tostring(_, encoding='unicode') for _ in base_row])
+                            tweet_item['content'] = extract_new_content(content_raw)
                     elif repost_link:
-                        repost_content = ''.join(tweet_node.xpath(
+                        base_row = tweet_node.xpath(
                             './/div[@class="card-feed"]/div[@class="content"]'
-                            '/p[@node-type="feed_list_content"]//text()')).replace(
-                            '\n', "").replace('\r', "").replace(' ', "")
-                        raw_content = ''.join(tweet_node.xpath(
+                            '/p[@node-type="feed_list_content"]')
+                        content_raw = ''.join([etree.tostring(_, encoding='unicode') for _ in base_row])
+                        repost_content = extract_new_content(content_raw)
+
+                        base_row = tweet_node.xpath(
                             './/div[@node-type="feed_list_forwardContent"]'
-                            '/p[@node-type="feed_list_content"]//text()')).replace(
-                            '\n', "").replace('\r', "").replace(' ', "")[:-5]
-                        tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'.replace(',', '，')
+                            '/p[@node-type="feed_list_content"]')
+                        content_raw = ''.join([etree.tostring(_, encoding='unicode') for _ in base_row])
+                        raw_content = extract_new_content(content_raw)
+                        tweet_item['content'] = f'转发理由：{repost_content}//{raw_content}'
                     else:
-                        tweet_item['content'] = ''.join(tweet_node.xpath(
-                            './/div[@class="content"]/p[@node-type="feed_list_content"]//text()')).replace(
-                            '\n', "").replace('\r', "").replace(' ', "").replace(',', '，')  # 微博内容
+                        base_row = tweet_node.xpath(
+                            './/div[@class="content"]/p[@node-type="feed_list_content"]')
+                        content_raw = ''.join([etree.tostring(_, encoding='unicode') for _ in base_row])
+                        tweet_item['content'] = extract_new_content(content_raw)
                     yield tweet_item
             except Exception as e:
                 print('解析微博信息出错啦:', e)

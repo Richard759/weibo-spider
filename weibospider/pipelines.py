@@ -31,7 +31,7 @@ class CsvFilePipeline(object):
             f_t = open("Tweets.csv", 'w', encoding='utf-8-sig', newline='')
             fieldnames_t = ["_id", "crawl_time", "content", "created_at", "user_id", "user_name", "image_count",
                             "image_url", "repost_image_url", "like_num", "comment_num", "repost_num", "video_url",
-                            "location_map_info", "origin_weibo", "tool", "weibo_url"]
+                            "location_map_info", "origin_weibo", "tool", "weibo_url", "user_title"]
             self.Tweets = csv.DictWriter(f_t, fieldnames=fieldnames_t)
             self.Tweets.writeheader()
         elif mode == 'comment':

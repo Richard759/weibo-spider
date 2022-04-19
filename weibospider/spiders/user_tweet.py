@@ -6,7 +6,6 @@ from scrapy.http import Request
 import time
 import random
 from items import TweetItem
-from urllib.parse import unquote
 from spiders.utils import time_fix, extract_weibo_content
 from settings import USER_TWEET_ID, TWEET_DATE_WINDOW
 

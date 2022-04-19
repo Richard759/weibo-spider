@@ -21,6 +21,7 @@ class TweetItem(Item):
     location_map_info = Field()  # 定位的经纬度信息
     crawl_time = Field()  # 抓取时间戳
     user_name = Field()
+    user_title = Field()
 
 
 class UserItem(Item):

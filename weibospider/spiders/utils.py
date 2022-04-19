@@ -61,6 +61,31 @@ def extract_weibo_content(weibo_html):
     return s
 
 
+def extract_new_content(weibo_html):
+    title_re = re.compile(r'<p.*?class="txt".*?>|</p>')
+    emo_re = re.compile(r'<img src=".*?" title="(.*?)" alt=".*?" class="face"/>')
+    space_re = re.compile(r'<br/>')
+    div_all_re = re.compile(r'</div>|<div.*?>')
+    img_re = re.compile(r'<img(.*?)/>')
+    a_re = re.compile(r'<a href=.*?>|</a>')
+    annotation_re = re.compile(r'<!--.*?-->')
+    other_re = re.compile(r'<i class="wbicon">.*?</i>')
+    bottom_re = re.compile(r'<a href="javascript:void(0);" action-type="fl_fold">收起全文<i class="wbicon">d</i></a>')
+    s = weibo_html
+    s = emo_re.sub(r'\1', s)
+    s = title_re.sub('', s)
+    s = space_re.sub('', s)
+    s = div_all_re.sub('', s)
+    s = img_re.sub('', s)
+    s = a_re.sub('', s)
+    s = annotation_re.sub('', s)
+    s = other_re.sub('', s)
+    s = bottom_re.sub('', s)
+    s = s.replace('\n', '').replace('\t', '').replace(',', '，')
+    s = s.strip()
+    return s
+
+
 def extract_comment_content(comment_html):
     s = comment_html
     if 'class="ctt">' in s:
