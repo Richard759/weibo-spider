@@ -31,9 +31,23 @@ DEFAULT_REQUEST_HEADERS = {
     # 'Cookie': '_T_WM=ab817248f3dde2d90fb1482a7a23c658; SCF=At9eOLw9o69sap1_tTXMdkUPPcB7_jux_87EDPewfgITz8yqvBrMYLDcRH7sFJlwehzXob6U1Up8wUJW8VA5Iv4.; SUB=_2A25PWXBqDeRhGeBL7VsU8SzJzjyIHXVsohAirDV6PUJbktAfLUjVkW1NRvFrV253l-z0iS8aVuVljTIgY3KTacUV; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh5h_i4eSgoD7jFisEd1k8Y5JpX5K-hUgL.FoqfSo.feKzfSK52dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcSKq4SK2ESK-7; SSOLoginState=1650262074; ALF=1652854074'
     'Cookie': 'SINAGLOBAL=2984020340573.4653.1615966504509; wvr=6; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh5h_i4eSgoD7jFisEd1k8Y5JpX5KMhUgL.FoqfSo.feKzfSK52dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcSKq4SK2ESK-7; UOR=,,login.sina.com.cn; ALF=1681793945; SSOLoginState=1650257947; SCF=At9eOLw9o69sap1_tTXMdkUPPcB7_jux_87EDPewfgITojc25TYi4mJEZ23UZT9ojzWjG7Uf8wGc7JejnBzj0N8.; SUB=_2A25PWIBLDeRhGeBL7VsU8SzJzjyIHXVsL_aDrDV8PUNbmtAKLXChkW9NRvFrVzLWVyegdiKilAU1_U3jNOcJkfeH; _s_tentry=-; Apache=2065238026491.918.1650257950754; ULV=1650257950777:93:7:2:2065238026491.918.1650257950754:1650160026081; webim_unReadCount=%7B%22time%22%3A1650305123051%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A31%2C%22msgbox%22%3A0%7D; WBStorage=4d96c54e|undefined'
 }
-# 原创微博和热门微博同时只能满足一个
-ONLY_HOT = False
-ONLY_ORIGIN = False
+# 类型
+TYPE = {'hot': '&xsort=hot',
+        'origin': '&scope=ori',
+        'follower': '&atten=1',
+        'authentication': '&vip=1',
+        'media': '&category=4',
+        'point': '&viewpoint=1',
+        'all': ''}
+CHOOSE_TYPE = TYPE['all']
+
+# 包含
+CONTAINS = {'picture': '&haspic=1',
+            'video': '&hasvideo=1',
+            'music': '&hasmusic=1',
+            'link': '&haslink=1',
+            'all': ''}
+CHOOSE_CONTAINS = CONTAINS['all']
 
 # 爬虫时间间隔
 MAX_DELTA = 10
@@ -51,8 +65,10 @@ TWEET_DATE_WINDOW = {
 #     for ll in lll:
 #         TWEET_KEY_WORDS.append(ff + ll)
 
+
+# 话题的#部分需要修改为%23
 TWEET_KEY_WORDS = [
-    'RNG',
+    '云南导游',
 ]
 
 COMMENT_TWEET_ID = []

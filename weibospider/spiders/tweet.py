@@ -7,11 +7,12 @@ from lxml import etree
 from scrapy import Spider
 from scrapy.http import Request
 from spiders.utils import get_create_time, extract_new_content
-from settings import TWEET_DATE_WINDOW, TWEET_KEY_WORDS, ONLY_HOT, ONLY_ORIGIN, MAX_DELTA
+from settings import TWEET_DATE_WINDOW, TWEET_KEY_WORDS, CHOOSE_TYPE, CHOOSE_CONTAINS, MAX_DELTA
 from items import TweetItem
 import random
 from time import sleep
 import time
+
 
 
 class TweetSpider(Spider):
@@ -26,15 +27,8 @@ class TweetSpider(Spider):
             date_start = datetime.datetime.strptime(TWEET_DATE_WINDOW["start_date"], '%Y-%m-%d')
             date_end = datetime.datetime.strptime(TWEET_DATE_WINDOW["end_date"], '%Y-%m-%d')
             time_spread = datetime.timedelta(days=MAX_DELTA)
-            if ONLY_ORIGIN:
-                url_format = ("https://s.weibo.com/weibo?q={}&scope=ori&typeall=1"
-                              "&suball=1&timescope=custom:{}:{}&Refer=g&page=1")
-            elif ONLY_HOT:
-                url_format = ("https://s.weibo.com/weibo?q={}&xsort=hot&typeall=1"
-                              "&suball=1&timescope=custom:{}:{}&Refer=g&page=1")
-            else:
-                url_format = ("https://s.weibo.com/weibo?q={}&typeall=1&suball=1"
-                              "&timescope=custom:{}:{}&Refer=g&page=1")
+            url_format = ("https://s.weibo.com/weibo?q={}" + CHOOSE_TYPE + CHOOSE_CONTAINS + "&typeall=1&suball=1"
+                          "&timescope=custom:{}:{}&Refer=g&page=1")
             # url_format = "https://s.weibo.com/weibo?q={}&timescope=custom:{}:{}&Refer=SWeibo_box&page=1"
             urls = []
             while date_start <= date_end:
